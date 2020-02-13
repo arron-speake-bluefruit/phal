@@ -1,0 +1,8 @@
+[package]
+name = "phal"
+description = "Pokes Hardware And Listens"
+version = "0.1.0"
+authors = ["Callum David O'Brien <cdo@teknik.io>"]
+edition = "2018"
+
+[dependencies]
