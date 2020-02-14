@@ -15,6 +15,55 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#![feature(proc_macro_hygiene, decl_macro)]
+
+use std::io::{self, Read};
+
+#[macro_use]
+extern crate rocket;
+use rocket::{
+    data::{self, FromDataSimple},
+    http::Status,
+    Data,
+    Outcome::*,
+    Request,
+};
+
+extern crate gpio;
+use gpio::{sysfs::SysFsGpioOutput, GpioOut};
+
+const LIMIT: u64 = 256;
+
+enum PinState {
+    High,
+    Low,
+}
+
+impl FromDataSimple for PinState {
+    type Error = String;
+    fn from_data(_: &Request, data: Data) -> data::Outcome<Self, String> {
+        let mut string = String::new();
+        if let Err(e) = data.open().take(LIMIT).read_to_string(&mut string) {
+            return Failure((Status::InternalServerError, format!("{:?}", e)));
+        }
+        match string.as_ref() {
+            "High" => Success(PinState::High),
+            "Low" => Success(PinState::Low),
+            _ => Failure((Status::UnprocessableEntity, string)),
+        }
+    }
+}
+
+#[post("/fixture/pin", data = "<state>")]
+fn set_pin(state: PinState) -> Result<(), io::Error> {
+    let mut pin = SysFsGpioOutput::open(24)?;
+    pin.set_value(match state {
+        PinState::High => true,
+        PinState::Low => false,
+    })?;
+    Ok(())
+}
+
 fn main() {
-    println!("Hello, world!");
+    rocket::ignite().mount("/", routes![set_pin]).launch();
 }
