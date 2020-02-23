@@ -15,7 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-use std::io;
+use std::{collections::HashMap, io, sync::Mutex};
 
 #[derive(Debug)]
 pub enum Error {
@@ -34,4 +34,29 @@ impl From<io::Error> for Error {
     fn from(error: io::Error) -> Error {
         Error::Io(error)
     }
+}
+
+pub struct LimbBindings(HashMap<String, Box<Mutex<dyn Limb>>>);
+
+impl LimbBindings {
+    pub fn from(limbs: HashMap<String, Box<Mutex<dyn Limb>>>) -> Self {
+        LimbBindings(limbs)
+    }
+
+    pub fn get(&self, name: &str) -> Option<&Box<Mutex<dyn Limb>>> {
+        self.0.get(name)
+    }
+}
+
+#[macro_export]
+macro_rules! limbs {
+    ( $( ($x:expr, $y:expr) ), * ) => {
+	{
+	    let mut limbs: HashMap<String, Box<Mutex<dyn Limb>>> = HashMap::new();
+	    $(
+		limbs.insert(String::from($x), Box::new(Mutex::new($y)));
+	    )*
+            LimbBindings::from(limbs)
+	}
+    };
 }

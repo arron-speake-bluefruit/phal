@@ -24,7 +24,7 @@ extern crate gpio;
 #[macro_use]
 extern crate rocket;
 
-use limb::{Limb, Error};
+use limb::{Error, Limb, LimbBindings};
 use pin::OutputPin;
 
 use std::{collections::HashMap, sync::Mutex};
@@ -32,7 +32,7 @@ use std::{collections::HashMap, sync::Mutex};
 use rocket::State;
 
 #[post("/limb/<name>", data = "<value>")]
-fn post_limb(limbs: State<HashMap<String, Box<Mutex<dyn Limb>>>>, name: String, value: String) -> Result<(), Error> {
+fn post_limb(limbs: State<LimbBindings>, name: String, value: String) -> Result<(), Error> {
     match limbs.get(&name) {
         Some(limb) => limb.lock().unwrap().set(value),
         None => Err(Error::MissingLimb),
@@ -40,9 +40,7 @@ fn post_limb(limbs: State<HashMap<String, Box<Mutex<dyn Limb>>>>, name: String, 
 }
 
 fn main() {
-    let mut limbs: HashMap<String, Box<Mutex<dyn Limb>>> = HashMap::new();
-    limbs.insert(String::from("pin"),
-		 Box::new(Mutex::new(OutputPin::new(24).unwrap())));
+    let limbs = limbs![("pin", OutputPin::new(24).unwrap())];
     rocket::ignite()
         .manage(limbs)
         .mount("/", routes![post_limb])
