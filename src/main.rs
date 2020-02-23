@@ -20,7 +20,7 @@
 mod limb;
 mod pin;
 
-extern crate gpio;
+extern crate gpio_cdev;
 #[macro_use]
 extern crate rocket;
 
@@ -40,7 +40,11 @@ fn post_limb(limbs: State<LimbBindings>, name: String, value: String) -> Result<
 }
 
 fn main() {
-    let limbs = limbs![("pin", OutputPin::new(24).unwrap())];
+    let limbs = limbs![
+        ("red", OutputPin::new("GPA2.3").unwrap()),
+        ("green", OutputPin::new("GPA0.2").unwrap()),
+        ("blue", OutputPin::new("GPX2.0").unwrap())
+    ];
     rocket::ignite()
         .manage(limbs)
         .mount("/", routes![post_limb])

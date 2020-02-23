@@ -6,5 +6,5 @@ authors = ["Callum David O'Brien <cdo@teknik.io>"]
 edition = "2018"
 
 [dependencies]
-gpio = "0.4.1"
+gpio-cdev = "0.2.0"
 rocket = { version = "0.4.2", default-features = false }

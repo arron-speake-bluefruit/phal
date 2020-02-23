@@ -17,11 +17,11 @@
 
 use crate::limb::{Error, Limb};
 
-use std::{convert::TryFrom, io};
+use std::convert::TryFrom;
 
-use gpio::{sysfs::SysFsGpioOutput, GpioOut};
+use gpio_cdev::{chips, LineHandle, LineRequestFlags};
 
-pub struct OutputPin(SysFsGpioOutput);
+pub struct OutputPin(LineHandle);
 
 pub enum PinState {
     High,
@@ -29,19 +29,33 @@ pub enum PinState {
 }
 
 impl OutputPin {
-    pub fn new(sysfs_gpio_number: u16) -> Result<Self, io::Error> {
-        Ok(OutputPin(SysFsGpioOutput::open(sysfs_gpio_number)?))
+    pub fn new(gpio_pin_name: &str) -> Result<Self, Error> {
+        let pin_name_parts: Vec<&str> = gpio_pin_name.split('.').collect();
+        for chip_result in chips().map_err(|_| Error::Io)? {
+            let mut chip = chip_result.map_err(|_| Error::Io)?;
+            if pin_name_parts[0].to_lowercase() == chip.label() {
+                let line = pin_name_parts[1].parse().map_err(|_| Error::InvalidValue)?;
+                let handle = chip
+                    .get_line(line)
+                    .map_err(|_| Error::MissingLimb)?
+                    .request(LineRequestFlags::OUTPUT, 0, "phal limb")
+                    .map_err(|_| Error::Io)?;
+                return Ok(OutputPin(handle));
+            }
+        }
+        Err(Error::MissingLimb)
     }
 }
 
 impl Limb for OutputPin {
     fn set(&mut self, value: String) -> Result<(), Error> {
         let requested_state = PinState::try_from(value)?;
-        self.0.set_value(match requested_state {
-            PinState::High => true,
-            PinState::Low => false,
-        })?;
-        Ok(())
+        self.0
+            .set_value(match requested_state {
+                PinState::High => 1,
+                PinState::Low => 0,
+            })
+            .map_err(|_| Error::BrokenLimb)
     }
 
     fn get(&mut self) -> Result<String, Error> {

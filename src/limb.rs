@@ -15,11 +15,12 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-use std::{collections::HashMap, io, sync::Mutex};
+use std::{collections::HashMap, sync::Mutex};
 
 #[derive(Debug)]
 pub enum Error {
-    Io(io::Error),
+    Io,
+    BrokenLimb,
     InvalidValue,
     InvalidOperation,
     MissingLimb,
@@ -28,12 +29,6 @@ pub enum Error {
 pub trait Limb: Send + Sync {
     fn set(&mut self, value: String) -> Result<(), Error>;
     fn get(&mut self) -> Result<String, Error>;
-}
-
-impl From<io::Error> for Error {
-    fn from(error: io::Error) -> Error {
-        Error::Io(error)
-    }
 }
 
 pub struct LimbBindings(HashMap<String, Box<Mutex<dyn Limb>>>);
