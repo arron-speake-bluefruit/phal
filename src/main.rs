@@ -17,53 +17,34 @@
 
 #![feature(proc_macro_hygiene, decl_macro)]
 
-use std::io::{self, Read};
-
-#[macro_use]
-extern crate rocket;
-use rocket::{
-    data::{self, FromDataSimple},
-    http::Status,
-    Data,
-    Outcome::*,
-    Request,
-};
+mod limb;
+mod pin;
 
 extern crate gpio;
-use gpio::{sysfs::SysFsGpioOutput, GpioOut};
+#[macro_use]
+extern crate rocket;
 
-const LIMIT: u64 = 256;
+use limb::{Limb, Error};
+use pin::OutputPin;
 
-enum PinState {
-    High,
-    Low,
-}
+use std::{collections::HashMap, sync::Mutex};
 
-impl FromDataSimple for PinState {
-    type Error = String;
-    fn from_data(_: &Request, data: Data) -> data::Outcome<Self, String> {
-        let mut string = String::new();
-        if let Err(e) = data.open().take(LIMIT).read_to_string(&mut string) {
-            return Failure((Status::InternalServerError, format!("{:?}", e)));
-        }
-        match string.as_ref() {
-            "High" => Success(PinState::High),
-            "Low" => Success(PinState::Low),
-            _ => Failure((Status::UnprocessableEntity, string)),
-        }
+use rocket::State;
+
+#[post("/limb/<name>", data = "<value>")]
+fn post_limb(limbs: State<HashMap<String, Box<Mutex<dyn Limb>>>>, name: String, value: String) -> Result<(), Error> {
+    match limbs.get(&name) {
+        Some(limb) => limb.lock().unwrap().set(value),
+        None => Err(Error::MissingLimb),
     }
 }
 
-#[post("/fixture/pin", data = "<state>")]
-fn set_pin(state: PinState) -> Result<(), io::Error> {
-    let mut pin = SysFsGpioOutput::open(24)?;
-    pin.set_value(match state {
-        PinState::High => true,
-        PinState::Low => false,
-    })?;
-    Ok(())
-}
-
 fn main() {
-    rocket::ignite().mount("/", routes![set_pin]).launch();
+    let mut limbs: HashMap<String, Box<Mutex<dyn Limb>>> = HashMap::new();
+    limbs.insert(String::from("pin"),
+		 Box::new(Mutex::new(OutputPin::new(24).unwrap())));
+    rocket::ignite()
+        .manage(limbs)
+        .mount("/", routes![post_limb])
+        .launch();
 }
