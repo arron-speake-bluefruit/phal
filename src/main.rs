@@ -20,16 +20,17 @@
 mod limb;
 mod pin;
 
-extern crate gpio_cdev;
+extern crate embedded_hal;
 #[macro_use]
 extern crate rocket;
+extern crate xu4_hal;
 
 use limb::{Error, Limb, LimbBindings};
-use pin::OutputPin;
 
 use std::{collections::HashMap, sync::Mutex};
 
 use rocket::State;
+use xu4_hal::gpio as xu4;
 
 #[post("/limb/<name>", data = "<value>")]
 fn post_limb(limbs: State<LimbBindings>, name: String, value: String) -> Result<(), Error> {
@@ -41,9 +42,9 @@ fn post_limb(limbs: State<LimbBindings>, name: String, value: String) -> Result<
 
 fn main() {
     let limbs = limbs![
-        ("red", OutputPin::new("GPA2.3").unwrap()),
-        ("green", OutputPin::new("GPA0.2").unwrap()),
-        ("blue", OutputPin::new("GPX2.0").unwrap())
+        ("red", xu4::OutputPin::new(xu4::Chip::Gpa2, 3).unwrap()),
+        ("green", xu4::OutputPin::new(xu4::Chip::Gpa0, 2).unwrap()),
+        ("blue", xu4::OutputPin::new(xu4::Chip::Gpx2, 0).unwrap())
     ];
     rocket::ignite()
         .manage(limbs)
