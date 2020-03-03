@@ -42,6 +42,22 @@ impl Limb for xu4::OutputPin {
     }
 }
 
+impl Limb for xu4::InputPin {
+    fn set(&mut self, _value: String) -> Result<(), Error> {
+        Err(Error::InvalidOperation)
+    }
+
+    fn get(&mut self) -> Result<String, Error> {
+        if self.is_high().map_err(|_| Error::BrokenLimb)? {
+            Ok(String::from("High"))
+        } else if self.is_low().map_err(|_| Error::BrokenLimb)? {
+            Ok(String::from("Low"))
+        } else {
+            Err(Error::BrokenLimb)
+        }
+    }
+}
+
 impl TryFrom<String> for PinState {
     type Error = Error;
 
