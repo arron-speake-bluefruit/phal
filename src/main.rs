@@ -52,7 +52,8 @@ fn main() {
     let limbs = limbs![
         ("red", xu4::OutputPin::new(xu4::Chip::Gpa2, 3).unwrap()),
         ("green", xu4::OutputPin::new(xu4::Chip::Gpa0, 2).unwrap()),
-        ("blue", xu4::OutputPin::new(xu4::Chip::Gpx2, 0).unwrap())
+        ("blue", xu4::OutputPin::new(xu4::Chip::Gpx2, 0).unwrap()),
+        ("input", xu4::InputPin::new(xu4::Chip::Gpa2, 6).unwrap())
     ];
     rocket::ignite()
         .manage(limbs)
