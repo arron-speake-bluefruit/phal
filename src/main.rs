@@ -40,6 +40,14 @@ fn post_limb(limbs: State<LimbBindings>, name: String, value: String) -> Result<
     }
 }
 
+#[get("/limb/<name>")]
+fn get_limb(limbs: State<LimbBindings>, name: String) -> Result<String, Error> {
+    match limbs.get(&name) {
+        Some(limb) => limb.lock().unwrap().get(),
+        None => Err(Error::MissingLimb),
+    }
+}
+
 fn main() {
     let limbs = limbs![
         ("red", xu4::OutputPin::new(xu4::Chip::Gpa2, 3).unwrap()),
@@ -48,6 +56,6 @@ fn main() {
     ];
     rocket::ignite()
         .manage(limbs)
-        .mount("/", routes![post_limb])
+        .mount("/", routes![post_limb, get_limb])
         .launch();
 }
