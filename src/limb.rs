@@ -5,6 +5,8 @@
 
 use std::{collections::HashMap, sync::Mutex};
 
+use serde_json as json;
+
 #[derive(Debug)]
 pub enum Error {
     Io,
@@ -15,6 +17,9 @@ pub enum Error {
 }
 
 pub trait Limb: Send + Sync {
+    fn from_json(config: &json::Value) -> Option<Self>
+    where
+        Self: Sized;
     fn set(&mut self, value: String) -> Result<(), Error>;
     fn get(&mut self) -> Result<String, Error>;
 }

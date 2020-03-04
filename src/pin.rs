@@ -8,6 +8,7 @@ use crate::limb::{Error, Limb};
 use std::convert::TryFrom;
 
 use embedded_hal::digital::v2::*;
+use serde_json as json;
 use xu4_hal::gpio as xu4;
 
 pub enum PinState {
@@ -16,6 +17,10 @@ pub enum PinState {
 }
 
 impl Limb for xu4::OutputPin {
+    fn from_json(config: &json::Value) -> Option<Self> {
+        None
+    }
+
     fn set(&mut self, value: String) -> Result<(), Error> {
         let requested_state = PinState::try_from(value)?;
         match requested_state {
@@ -31,6 +36,10 @@ impl Limb for xu4::OutputPin {
 }
 
 impl Limb for xu4::InputPin {
+    fn from_json(config: &json::Value) -> Option<Self> {
+        None
+    }
+
     fn set(&mut self, _value: String) -> Result<(), Error> {
         Err(Error::InvalidOperation)
     }

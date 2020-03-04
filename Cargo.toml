@@ -9,3 +9,4 @@ edition = "2018"
 xu4-hal = "0.1.1"
 embedded-hal = { version = "0.2.3", features = [ "unproven" ] }
 rocket = { version = "0.4.2", default-features = false }
+serde_json = "1.0.48"

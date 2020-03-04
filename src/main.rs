@@ -11,6 +11,7 @@ mod pin;
 extern crate embedded_hal;
 #[macro_use]
 extern crate rocket;
+extern crate serde_json;
 extern crate xu4_hal;
 
 use limb::{Error, Limb, LimbBindings};
