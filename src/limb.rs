@@ -24,6 +24,8 @@ pub trait Limb: Send + Sync {
     fn get(&mut self) -> Result<String, Error>;
 }
 
+pub struct LimbTypes(HashMap<String, Box<dyn Fn(&json::Value) -> Option<Box<Mutex<dyn Limb>>>>>);
+
 pub struct LimbBindings(HashMap<String, Box<Mutex<dyn Limb>>>);
 
 impl LimbBindings {
@@ -33,6 +35,14 @@ impl LimbBindings {
 
     pub fn get(&self, name: &str) -> Option<&Box<Mutex<dyn Limb>>> {
         self.0.get(name)
+    }
+}
+
+impl LimbTypes {
+    pub fn from(
+        h: HashMap<String, Box<dyn Fn(&serde_json::Value) -> Option<Box<Mutex<dyn Limb>>>>>,
+    ) -> Self {
+        LimbTypes(h)
     }
 }
 
