@@ -14,9 +14,16 @@ extern crate rocket;
 extern crate serde_json;
 extern crate xu4_hal;
 
-use limb::{Error, Limb, LimbBindings};
+use limb::{Error, Limb, LimbBindings, LimbTypes};
 
-use std::{collections::HashMap, sync::Mutex};
+use std::{
+    collections::HashMap,
+    env::args,
+    fs::File,
+    io::{BufReader, Read},
+    path::Path,
+    sync::Mutex,
+};
 
 use rocket::State;
 use xu4_hal::gpio as xu4;
@@ -37,13 +44,23 @@ fn get_limb(limbs: State<LimbBindings>, name: String) -> Result<String, Error> {
     }
 }
 
+fn file_contents<P: AsRef<Path>>(path: P) -> Option<String> {
+    let mut reader = File::open(path).map(BufReader::new).ok()?;
+    let mut s = String::new();
+    reader.read_to_string(&mut s).ok()?;
+    Some(s)
+}
+
 fn main() {
-    let limbs = limbs![
-        ("red", xu4::OutputPin::new(xu4::Chip::Gpa2, 3).unwrap()),
-        ("green", xu4::OutputPin::new(xu4::Chip::Gpa0, 2).unwrap()),
-        ("blue", xu4::OutputPin::new(xu4::Chip::Gpx2, 0).unwrap()),
-        ("input", xu4::InputPin::new(xu4::Chip::Gpa2, 6).unwrap())
+    let types: LimbTypes = limb_types![
+        ("output-pin", xu4::OutputPin::from_json),
+        ("input-pin", xu4::InputPin::from_json)
     ];
+    let limbs = args()
+        .nth(1)
+        .and_then(file_contents)
+        .and_then(|s| LimbBindings::from_json(s, types))
+        .expect("Failed to read config");
     rocket::ignite()
         .manage(limbs)
         .mount("/", routes![post_limb, get_limb])

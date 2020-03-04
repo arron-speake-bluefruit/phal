@@ -29,8 +29,21 @@ pub struct LimbTypes(HashMap<String, Box<dyn Fn(&json::Value) -> Option<Box<Mute
 pub struct LimbBindings(HashMap<String, Box<Mutex<dyn Limb>>>);
 
 impl LimbBindings {
-    pub fn from(limbs: HashMap<String, Box<Mutex<dyn Limb>>>) -> Self {
-        LimbBindings(limbs)
+    pub fn from_json(json: String, types: LimbTypes) -> Option<Self> {
+        let mut limbs = HashMap::new();
+        match json::from_str(&json).ok()? {
+            json::Value::Object(o) => {
+                for (k, v) in o.iter() {
+                    let limb = match &v["type"] {
+                        json::Value::String(s) => types.0[s](v),
+                        _ => None,
+                    }?;
+                    limbs.insert(String::from(k), limb);
+                }
+            }
+            _ => return None,
+        }
+        Some(LimbBindings(limbs))
     }
 
     pub fn get(&self, name: &str) -> Option<&Box<Mutex<dyn Limb>>> {
@@ -47,14 +60,17 @@ impl LimbTypes {
 }
 
 #[macro_export]
-macro_rules! limbs {
-    ( $( ($x:expr, $y:expr) ), * ) => {
-	{
-	    let mut limbs: HashMap<String, Box<Mutex<dyn Limb>>> = HashMap::new();
-	    $(
-		limbs.insert(String::from($x), Box::new(Mutex::new($y)));
-	    )*
-            LimbBindings::from(limbs)
-	}
-    };
+macro_rules! limb_types {
+	( $( ($x:expr, $y:expr) ), * ) => {
+		{
+			let mut types: HashMap<String, Box<dyn Fn(&serde_json::Value) -> Option<Box<Mutex<dyn Limb>>>>> = HashMap::new();
+			$(
+				types.insert(String::from($x), Box::new(|v| $y(v).map(|l| {
+					let limb: Box<Mutex<dyn Limb>> = Box::new(Mutex::new(l));
+					limb
+				})));
+			)*
+				LimbTypes::from(types)
+		}
+	};
 }
