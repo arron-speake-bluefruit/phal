@@ -1,0 +1,14 @@
+image: freebsd/latest
+sources:
+  - https://git.sr.ht/~cdo/phal
+tasks:
+  - setup: |
+      curl https://sh.rustup.rs -sSf | sh -s -- --default-toolchain nightly -y
+  - build: |
+      source $HOME/.cargo/env
+      cd phal
+      cargo build
+  - test: |
+      source $HOME/.cargo/env
+      cd phal
+      cargo test
