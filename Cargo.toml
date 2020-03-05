@@ -4,6 +4,7 @@ description = "Pokes Hardware And Listens"
 version = "0.1.0"
 authors = ["Callum David O'Brien <cdo@teknik.io>"]
 edition = "2018"
+license = "GPL-3.0-or-later"
 
 [dependencies]
 xu4-hal = "0.1.2"
