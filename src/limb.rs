@@ -9,7 +9,6 @@ use serde_json as json;
 
 #[derive(Debug)]
 pub enum Error {
-    Io,
     BrokenLimb,
     InvalidValue,
     InvalidOperation,
