@@ -5,7 +5,10 @@
 
 use crate::limb::{Error, Limb};
 
-use std::convert::TryFrom;
+use std::{
+    convert::{TryFrom, TryInto},
+    str::FromStr,
+};
 
 use embedded_hal::digital::v2::*;
 use serde_json as json;
@@ -18,7 +21,7 @@ pub enum PinState {
 
 impl Limb for xu4::OutputPin {
     fn from_json(config: &json::Value) -> Option<Self> {
-        None
+        pin_from_json(xu4::OutputPin::new, config)
     }
 
     fn set(&mut self, value: String) -> Result<(), Error> {
@@ -37,7 +40,7 @@ impl Limb for xu4::OutputPin {
 
 impl Limb for xu4::InputPin {
     fn from_json(config: &json::Value) -> Option<Self> {
-        None
+        pin_from_json(xu4::InputPin::new, config)
     }
 
     fn set(&mut self, _value: String) -> Result<(), Error> {
@@ -52,6 +55,23 @@ impl Limb for xu4::InputPin {
         } else {
             Err(Error::BrokenLimb)
         }
+    }
+}
+
+fn pin_from_json<F, T>(pin: F, config: &json::Value) -> Option<T>
+where
+    F: Fn(xu4::Chip, u32) -> Result<T, xu4::Error>,
+{
+    let chip = match &config["chip"] {
+        json::Value::String(s) => xu4::Chip::from_str(&s).ok(),
+        _ => None,
+    }?;
+    match &config["line"] {
+        json::Value::Number(n) => n
+            .as_u64()
+            .and_then(|x| x.try_into().ok())
+            .and_then(|line| pin(chip, line).ok()),
+        _ => None,
     }
 }
 
