@@ -61,11 +61,11 @@ impl LimbTypes {
 
 #[macro_export]
 macro_rules! limb_types {
-	( $( ($x:expr, $y:expr) ), * ) => {
+	( $( ($x:expr, $y:ty) ), * ) => {
 		{
 			let mut types: HashMap<String, Box<dyn Fn(&serde_json::Value) -> Option<Box<Mutex<dyn Limb>>>>> = HashMap::new();
 			$(
-				types.insert(String::from($x), Box::new(|v| $y(v).map(|l| {
+				types.insert(String::from($x), Box::new(|v| <$y>::from_json(v).map(|l| {
 					let limb: Box<Mutex<dyn Limb>> = Box::new(Mutex::new(l));
 					limb
 				})));

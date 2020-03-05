@@ -52,10 +52,7 @@ fn file_contents<P: AsRef<Path>>(path: P) -> Option<String> {
 }
 
 fn main() {
-    let types: LimbTypes = limb_types![
-        ("output-pin", xu4::OutputPin::from_json),
-        ("input-pin", xu4::InputPin::from_json)
-    ];
+    let types = limb_types![("output-pin", xu4::OutputPin), ("input-pin", xu4::InputPin)];
     let limbs = args()
         .nth(1)
         .and_then(file_contents)
