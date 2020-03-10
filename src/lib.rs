@@ -7,10 +7,12 @@
 
 pub mod limb;
 pub mod pin;
+pub mod serial;
 pub mod server;
 
 extern crate embedded_hal;
 #[macro_use]
 extern crate rocket;
 extern crate serde_json;
+extern crate serial as system_serial;
 extern crate xu4_hal;
