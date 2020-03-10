@@ -8,7 +8,7 @@ extern crate phal;
 
 use phal::{
     limb::{Limb, LimbTypes},
-    server,
+    serial, server,
 };
 
 use std::{
@@ -30,7 +30,11 @@ fn file_contents<P: AsRef<Path>>(path: P) -> Option<String> {
 }
 
 fn main() {
-    let types = limb_types![("output-pin", xu4::OutputPin), ("input-pin", xu4::InputPin)];
+    let types = limb_types![
+        ("output-pin", xu4::OutputPin),
+        ("input-pin", xu4::InputPin),
+        ("serial", serial::Serial)
+    ];
     let config = args()
         .nth(1)
         .and_then(file_contents)
