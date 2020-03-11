@@ -41,7 +41,7 @@ cargo build
 	"uart": {
 		"type": "serial",
 		"device": "/dev/ttySAC0",
-		"baud_rate": 9600,
+		"baud-rate": 9600,
 		"char-size": 8,
 		"parity": "none",
 		"stop-bits": 1,
