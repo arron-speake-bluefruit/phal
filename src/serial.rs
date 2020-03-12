@@ -45,7 +45,7 @@ impl Limb for Serial {
         let mut v: Vec<u8> = Vec::new();
         loop {
             let mut buffer = [0; 1];
-            if let Err(e) = self.0.read(&mut buffer) {
+            if let Err(_) = self.0.read(&mut buffer) {
                 break;
             }
             v.push(buffer[0]);
