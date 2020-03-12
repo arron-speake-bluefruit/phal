@@ -49,3 +49,14 @@ cargo build
 	}
 }
 ```
+
+## Self test example
+
+The `example` directory contains a Python test suite using `phal` to
+test itself. The intended set-up here is two XU4s with their UARTs
+connected, and lines connecting pins GPX2.0 on one to GPA2.6 on the
+other and vice versa.
+
+Change the `MASTER` and `SLAVE` constants in the python file to
+reflect your setup. Then, running `pytest` in the directory should
+run a quick end-to-end test of the system.
