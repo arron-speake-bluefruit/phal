@@ -60,19 +60,27 @@ impl Limb for xu4::InputPin {
 
 fn pin_from_json<F, T>(pin: F, config: &json::Value) -> Option<T>
 where
-    F: Fn(xu4::Chip, u32) -> Result<T, xu4::Error>,
+    F: Fn(xu4::Chip, u32, xu4::Type) -> Result<T, xu4::Error>,
 {
     let chip = match &config["chip"] {
         json::Value::String(s) => xu4::Chip::from_str(&s).ok(),
         _ => None,
     }?;
-    match &config["line"] {
+    let line = match &config["line"] {
         json::Value::Number(n) => n
             .as_u64()
-            .and_then(|x| x.try_into().ok())
-            .and_then(|line| pin(chip, line).ok()),
+            .and_then(|x| x.try_into().ok()),
         _ => None,
-    }
+    }?;
+	let pin_type = match &config["pin-type"] {
+		json::Value::String(s) => match s.as_ref() {
+			"push-pull" => Some(xu4::Type::PushPull),
+			"open-drain" => Some(xu4::Type::OpenDrain),
+			_ => None
+		},
+		_ => None
+	}?;
+	pin(chip, line, pin_type).ok()
 }
 
 impl TryFrom<String> for PinState {

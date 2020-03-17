@@ -31,12 +31,14 @@ cargo build
 	"digital-input": {
 		"type": "input-pin",
 		"chip": "gpa2",
-		"line": 6
+		"line": 6,
+		"pin-type": "push-pull"
 	},
 	"digital-output": {
 		"type": "output-pin",
 		"chip": "gpx2",
-		"line": 0
+		"line": 0,
+		"pin-type": "push-pull"
 	},
 	"uart": {
 		"type": "serial",
