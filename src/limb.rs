@@ -37,6 +37,9 @@ impl LimbBindings {
                         json::Value::String(s) => types.0[s](v),
                         _ => None,
                     }?;
+                    if let json::Value::String(init_value) = &v["init"] {
+                        limb.lock().unwrap().set(init_value.to_string()).ok()?;
+                    }
                     limbs.insert(String::from(k), limb);
                 }
             }

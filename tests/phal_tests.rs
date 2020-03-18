@@ -81,3 +81,24 @@ fn get_and_post_requests_call_get_and_set_on_a_limb() {
         Some("quux".to_string())
     );
 }
+
+#[test]
+fn a_limb_is_set_to_its_init_config_property_on_start_up_if_it_exists() {
+    let types = limb_types![("foo", MockLimb)];
+    let config = r#"
+        {
+            "bar": {
+                "type": "foo",
+                "init": "baz"
+            }
+        }
+    "#;
+    let client = server::rocket(types, config.to_string())
+        .and_then(|r| Client::new(r).ok())
+        .unwrap();
+
+    assert_eq!(
+        client.get("/limb/bar").dispatch().body_string(),
+        Some("baz".to_string())
+    );
+}

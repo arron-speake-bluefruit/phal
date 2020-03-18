@@ -67,20 +67,18 @@ where
         _ => None,
     }?;
     let line = match &config["line"] {
-        json::Value::Number(n) => n
-            .as_u64()
-            .and_then(|x| x.try_into().ok()),
+        json::Value::Number(n) => n.as_u64().and_then(|x| x.try_into().ok()),
         _ => None,
     }?;
-	let pin_type = match &config["pin-type"] {
-		json::Value::String(s) => match s.as_ref() {
-			"push-pull" => Some(xu4::Type::PushPull),
-			"open-drain" => Some(xu4::Type::OpenDrain),
-			_ => None
-		},
-		_ => None
-	}?;
-	pin(chip, line, pin_type).ok()
+    let pin_type = match &config["pin-type"] {
+        json::Value::String(s) => match s.as_ref() {
+            "push-pull" => Some(xu4::Type::PushPull),
+            "open-drain" => Some(xu4::Type::OpenDrain),
+            _ => None,
+        },
+        _ => None,
+    }?;
+    pin(chip, line, pin_type).ok()
 }
 
 impl TryFrom<String> for PinState {
