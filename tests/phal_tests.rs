@@ -3,7 +3,8 @@
  * Copyright (C) 2020 Callum David O'Brien
  */
 
-#[macro_use] extern crate phal;
+#[macro_use]
+extern crate phal;
 extern crate ureq;
 
 use phal::{
@@ -45,9 +46,13 @@ fn server_has_endpoints_for_limbs_in_config() {
     "#;
     let server_channel = server::run(types, config, "localhost:2000").unwrap();
     assert!(ureq::get("http://localhost:2000/limb/bar").call().ok());
-    assert!(ureq::post("http://localhost:2000/limb/bar").send_string("foo").ok());
+    assert!(ureq::post("http://localhost:2000/limb/bar")
+        .send_string("foo")
+        .ok());
     assert!(ureq::get("http://localhost:2000/limb/baz").call().ok());
-    assert!(ureq::post("http://localhost:2000/limb/baz").send_string("foo").ok());
+    assert!(ureq::post("http://localhost:2000/limb/baz")
+        .send_string("foo")
+        .ok());
     server_channel.send(()).unwrap();
 }
 
@@ -64,12 +69,18 @@ fn get_and_post_requests_call_get_and_set_on_a_limb() {
     let server_channel = server::run(types, config, "localhost:2001").unwrap();
     ureq::post("http://localhost:2001/limb/bar").send_string("baz");
     assert_eq!(
-        ureq::get("http://localhost:2001/limb/bar").call().into_string().unwrap(),
+        ureq::get("http://localhost:2001/limb/bar")
+            .call()
+            .into_string()
+            .unwrap(),
         "baz".to_string()
     );
     ureq::post("http://localhost:2001/limb/bar").send_string("quux");
     assert_eq!(
-        ureq::get("http://localhost:2001/limb/bar").call().into_string().unwrap(),
+        ureq::get("http://localhost:2001/limb/bar")
+            .call()
+            .into_string()
+            .unwrap(),
         "quux".to_string()
     );
     server_channel.send(()).unwrap();
@@ -88,7 +99,10 @@ fn a_limb_is_set_to_its_init_config_property_on_start_up_if_it_exists() {
     "#;
     let server_channel = server::run(types, config, "localhost:2002").unwrap();
     assert_eq!(
-        ureq::get("http://localhost:2002/limb/bar").call().into_string().unwrap(),
+        ureq::get("http://localhost:2002/limb/bar")
+            .call()
+            .into_string()
+            .unwrap(),
         "baz".to_string()
     );
     server_channel.send(()).unwrap();
