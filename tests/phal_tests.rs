@@ -60,7 +60,6 @@ fn server_has_endpoints_for_limbs_in_config() {
 
 #[test]
 fn get_and_post_requests_call_get_and_set_on_a_limb() {
-
     thread::spawn(|| {
         let types = limb_types![("foo", MockLimb)];
         let config = r#"
@@ -131,7 +130,9 @@ fn config_can_be_updated_via_config_endpoint() {
             }
         }
     "#;
-    assert!(ureq::post("http://localhost:2003/config").send_string(new_config).ok());
+    assert!(ureq::post("http://localhost:2003/config")
+        .send_string(new_config)
+        .ok());
     assert_eq!(
         ureq::get("http://localhost:2003/limb/bar")
             .call()

@@ -37,23 +37,23 @@ fn handle_limb_request(limb: &mut Box<dyn Limb>, req: &mut Request) -> ResponseB
     }
 }
 
-fn handle_config_request(types: &LimbTypes,
-                         limbs: &mut LimbBindings,
-                         req: &mut Request) -> ResponseBox {
+fn handle_config_request(
+    types: &LimbTypes,
+    limbs: &mut LimbBindings,
+    req: &mut Request,
+) -> ResponseBox {
     match req.method() {
         Method::Get => Response::empty(501).boxed(),
         Method::Post => {
             let mut config = String::new();
             req.as_reader()
                 .read_to_string(&mut config)
-                .map(|_| {
-                    match LimbBindings::from_json(&config, types) {
-                        Some(new_limbs) => {
-                            *limbs = new_limbs;
-                            Response::empty(200).boxed()
-                        },
-                        None => Response::empty(400).boxed()
+                .map(|_| match LimbBindings::from_json(&config, types) {
+                    Some(new_limbs) => {
+                        *limbs = new_limbs;
+                        Response::empty(200).boxed()
                     }
+                    None => Response::empty(400).boxed(),
                 })
                 .unwrap_or(Response::empty(400).boxed())
         }
@@ -61,9 +61,7 @@ fn handle_config_request(types: &LimbTypes,
     }
 }
 
-fn handle_request(types: &LimbTypes,
-                  limbs: &mut LimbBindings,
-                  req: &mut Request) -> ResponseBox {
+fn handle_request(types: &LimbTypes, limbs: &mut LimbBindings, req: &mut Request) -> ResponseBox {
     lazy_static! {
         static ref LIMB_RE: Regex = Regex::new(r"^/limb/([^/]+)$").unwrap();
         static ref CONFIG_RE: Regex = Regex::new(r"^/config$").unwrap();
