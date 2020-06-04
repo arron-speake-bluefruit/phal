@@ -27,7 +27,7 @@ pub struct LimbTypes(HashMap<String, Box<dyn Fn(&json::Value) -> Option<Box<dyn 
 pub struct LimbBindings(HashMap<String, Box<dyn Limb>>);
 
 impl LimbBindings {
-    pub fn from_json(json: &str, types: LimbTypes) -> Option<Self> {
+    pub fn from_json(json: &str, types: &LimbTypes) -> Option<Self> {
         let mut limbs = HashMap::new();
         match json::from_str(json).ok()? {
             json::Value::Object(o) => {
