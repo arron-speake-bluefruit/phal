@@ -3,7 +3,7 @@ sources:
   - https://git.sr.ht/~cdo/phal
 tasks:
   - setup: |
-      curl https://sh.rustup.rs -sSf | sh -s -- --default-toolchain nightly -y
+      curl -sSf https://sh.rustup.rs | sh -s -- -y
   - build: |
       source $HOME/.cargo/env
       cd phal
