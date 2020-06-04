@@ -47,6 +47,7 @@ fn server_has_endpoints_for_limbs_in_config() {
         "#;
         server::run(&types, config, "localhost:2000").unwrap()
     });
+    thread::sleep(time::Duration::from_millis(10));
     assert!(ureq::get("http://localhost:2000/limb/bar").call().ok());
     assert!(ureq::post("http://localhost:2000/limb/bar")
         .send_string("foo")
@@ -71,6 +72,7 @@ fn get_and_post_requests_call_get_and_set_on_a_limb() {
         "#;
         server::run(&types, config, "localhost:2001").unwrap()
     });
+    thread::sleep(time::Duration::from_millis(10));
     ureq::post("http://localhost:2001/limb/bar").send_string("baz");
     assert_eq!(
         ureq::get("http://localhost:2001/limb/bar")
@@ -103,6 +105,7 @@ fn a_limb_is_set_to_its_init_config_property_on_start_up_if_it_exists() {
         "#;
         server::run(&types, config, "localhost:2002").unwrap()
     });
+    thread::sleep(time::Duration::from_millis(10));
     assert_eq!(
         ureq::get("http://localhost:2002/limb/bar")
             .call()
@@ -119,6 +122,7 @@ fn config_can_be_updated_via_config_endpoint() {
         let config = "{}";
         server::run(&types, config, "localhost:2003").unwrap()
     });
+    thread::sleep(time::Duration::from_millis(10));
     let new_config = r#"
         {
             "bar": {
