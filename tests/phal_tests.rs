@@ -3,18 +3,15 @@
  * Copyright (C) 2020 Callum David O'Brien
  */
 
-#[macro_use]
-extern crate phal;
-extern crate rocket;
+#[macro_use] extern crate phal;
+extern crate ureq;
 
 use phal::{
     limb::{Error, Limb, LimbTypes},
     server,
 };
-use rocket::{http::Status, local::Client};
 use serde_json as json;
-
-use std::{collections::HashMap, sync::Mutex};
+use std::collections::HashMap;
 
 struct MockLimb(String);
 
@@ -46,14 +43,12 @@ fn server_has_endpoints_for_limbs_in_config() {
             }
         }
     "#;
-    let client = server::rocket(types, config.to_string())
-        .and_then(|r| Client::new(r).ok())
-        .unwrap();
-
-    assert_eq!(client.get("/limb/bar").dispatch().status(), Status::Ok);
-    assert_eq!(client.post("/limb/bar").dispatch().status(), Status::Ok);
-    assert_eq!(client.get("/limb/baz").dispatch().status(), Status::Ok);
-    assert_eq!(client.post("/limb/baz").dispatch().status(), Status::Ok);
+    let server_channel = server::run(types, config, "localhost:2000").unwrap();
+    assert!(ureq::get("http://localhost:2000/limb/bar").call().ok());
+    assert!(ureq::post("http://localhost:2000/limb/bar").send_string("foo").ok());
+    assert!(ureq::get("http://localhost:2000/limb/baz").call().ok());
+    assert!(ureq::post("http://localhost:2000/limb/baz").send_string("foo").ok());
+    server_channel.send(()).unwrap();
 }
 
 #[test]
@@ -66,20 +61,18 @@ fn get_and_post_requests_call_get_and_set_on_a_limb() {
             }
         }
     "#;
-    let client = server::rocket(types, config.to_string())
-        .and_then(|r| Client::new(r).ok())
-        .unwrap();
-
-    client.post("/limb/bar").body("baz").dispatch().status();
+    let server_channel = server::run(types, config, "localhost:2001").unwrap();
+    ureq::post("http://localhost:2001/limb/bar").send_string("baz");
     assert_eq!(
-        client.get("/limb/bar").dispatch().body_string(),
-        Some("baz".to_string())
+        ureq::get("http://localhost:2001/limb/bar").call().into_string().unwrap(),
+        "baz".to_string()
     );
-    client.post("/limb/bar").body("quux").dispatch().status();
+    ureq::post("http://localhost:2001/limb/bar").send_string("quux");
     assert_eq!(
-        client.get("/limb/bar").dispatch().body_string(),
-        Some("quux".to_string())
+        ureq::get("http://localhost:2001/limb/bar").call().into_string().unwrap(),
+        "quux".to_string()
     );
+    server_channel.send(()).unwrap();
 }
 
 #[test]
@@ -93,12 +86,10 @@ fn a_limb_is_set_to_its_init_config_property_on_start_up_if_it_exists() {
             }
         }
     "#;
-    let client = server::rocket(types, config.to_string())
-        .and_then(|r| Client::new(r).ok())
-        .unwrap();
-
+    let server_channel = server::run(types, config, "localhost:2002").unwrap();
     assert_eq!(
-        client.get("/limb/bar").dispatch().body_string(),
-        Some("baz".to_string())
+        ureq::get("http://localhost:2002/limb/bar").call().into_string().unwrap(),
+        "baz".to_string()
     );
+    server_channel.send(()).unwrap();
 }

@@ -17,7 +17,6 @@ use std::{
     fs::File,
     io::{BufReader, Read},
     path::Path,
-    sync::Mutex,
 };
 
 use xu4_hal::gpio as xu4;
@@ -39,7 +38,5 @@ fn main() {
         .nth(1)
         .and_then(file_contents)
         .expect("Failed to read config");
-    server::rocket(types, config)
-        .expect("Failed to initialise server")
-        .launch();
+    let _ = server::run(types, &config, "0.0.0.0:8000").expect("Failed to start server");
 }

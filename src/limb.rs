@@ -3,7 +3,7 @@
  * Copyright (C) 2020 Callum David O'Brien
  */
 
-use std::{collections::HashMap, sync::Mutex};
+use std::collections::HashMap;
 
 use serde_json as json;
 
@@ -12,7 +12,6 @@ pub enum Error {
     BrokenLimb,
     InvalidValue,
     InvalidOperation,
-    MissingLimb,
 }
 
 pub trait Limb: Send + Sync {
@@ -23,22 +22,22 @@ pub trait Limb: Send + Sync {
     fn get(&mut self) -> Result<String, Error>;
 }
 
-pub struct LimbTypes(HashMap<String, Box<dyn Fn(&json::Value) -> Option<Box<Mutex<dyn Limb>>>>>);
+pub struct LimbTypes(HashMap<String, Box<dyn Fn(&json::Value) -> Option<Box<dyn Limb>>>>);
 
-pub struct LimbBindings(HashMap<String, Box<Mutex<dyn Limb>>>);
+pub struct LimbBindings(HashMap<String, Box<dyn Limb>>);
 
 impl LimbBindings {
-    pub fn from_json(json: String, types: LimbTypes) -> Option<Self> {
+    pub fn from_json(json: &str, types: LimbTypes) -> Option<Self> {
         let mut limbs = HashMap::new();
-        match json::from_str(&json).ok()? {
+        match json::from_str(json).ok()? {
             json::Value::Object(o) => {
                 for (k, v) in o.iter() {
-                    let limb = match &v["type"] {
+                    let mut limb = match &v["type"] {
                         json::Value::String(s) => types.0[s](v),
                         _ => None,
                     }?;
                     if let json::Value::String(init_value) = &v["init"] {
-                        limb.lock().unwrap().set(init_value.to_string()).ok()?;
+                        limb.set(init_value.to_string()).ok()?;
                     }
                     limbs.insert(String::from(k), limb);
                 }
@@ -48,14 +47,14 @@ impl LimbBindings {
         Some(LimbBindings(limbs))
     }
 
-    pub fn get(&self, name: &str) -> Option<&Box<Mutex<dyn Limb>>> {
-        self.0.get(name)
+    pub fn get(&mut self, name: &str) -> Option<&mut Box<dyn Limb>> {
+        self.0.get_mut(name)
     }
 }
 
 impl LimbTypes {
     pub fn from(
-        h: HashMap<String, Box<dyn Fn(&serde_json::Value) -> Option<Box<Mutex<dyn Limb>>>>>,
+        h: HashMap<String, Box<dyn Fn(&serde_json::Value) -> Option<Box<dyn Limb>>>>,
     ) -> Self {
         LimbTypes(h)
     }
@@ -65,10 +64,10 @@ impl LimbTypes {
 macro_rules! limb_types {
 	( $( ($x:expr, $y:ty) ), * ) => {
 		{
-			let mut types: HashMap<String, Box<dyn Fn(&serde_json::Value) -> Option<Box<Mutex<dyn Limb>>>>> = HashMap::new();
+			let mut types: HashMap<String, Box<dyn Fn(&serde_json::Value) -> Option<Box<dyn Limb>>>> = HashMap::new();
 			$(
 				types.insert(String::from($x), Box::new(|v| <$y>::from_json(v).map(|l| {
-					let limb: Box<Mutex<dyn Limb>> = Box::new(Mutex::new(l));
+					let limb: Box<dyn Limb> = Box::new(l);
 					limb
 				})));
 			)*
