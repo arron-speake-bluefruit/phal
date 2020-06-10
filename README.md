@@ -13,7 +13,8 @@ your tests can use.
 The `example` directory contains a Python test suite using phal to
 test itself. The intended set-up here is two Odroids XU4s with their
 UARTs connected, and lines connecting pins GPX2.0 on one to GPA2.6 on
-the other and vice versa.
+the other and vice versa. See [Odroid XU4 GPIO](odroid-xu4-gpio.md)
+for more information on using the XU4's GPIO pins.
 
 Change the `MASTER` and `SLAVE` constants in the python file to
 reflect your setup. Then, running `pytest` in the directory should
