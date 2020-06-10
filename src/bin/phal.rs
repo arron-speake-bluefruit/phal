@@ -8,7 +8,7 @@ extern crate phal;
 
 use phal::{
     limb::{Limb, LimbTypes},
-    serial, server,
+    pin, serial, server,
 };
 
 use std::{
@@ -19,8 +19,6 @@ use std::{
     path::Path,
 };
 
-use xu4_hal::gpio as xu4;
-
 fn file_contents<P: AsRef<Path>>(path: P) -> Option<String> {
     let mut reader = File::open(path).map(BufReader::new).ok()?;
     let mut s = String::new();
@@ -30,8 +28,8 @@ fn file_contents<P: AsRef<Path>>(path: P) -> Option<String> {
 
 fn main() {
     let types = limb_types![
-        ("output-pin", xu4::OutputPin),
-        ("input-pin", xu4::InputPin),
+        ("output-pin", pin::OutputPin),
+        ("input-pin", pin::InputPin),
         ("serial", serial::Serial)
     ];
     let config = args()

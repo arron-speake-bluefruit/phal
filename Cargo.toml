@@ -7,13 +7,12 @@ edition = "2018"
 license = "GPL-3.0-or-later"
 
 [dependencies]
-embedded-hal = { version = "0.2.3", features = [ "unproven" ] }
+gpio-cdev = "0.2.0"
 lazy_static = "1"
 regex = "1"
 serde_json = "1.0.48"
 serial = "0.4.0"
 tiny_http = "0.7.0"
-xu4-hal = "0.2.2"
 
 [dev-dependencies]
 ureq = "1.1.1"

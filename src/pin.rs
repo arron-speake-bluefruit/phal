@@ -5,32 +5,30 @@
 
 use crate::limb::{Error, Limb};
 
-use std::{
-    convert::{TryFrom, TryInto},
-    str::FromStr,
-};
+use std::convert::TryInto;
 
-use embedded_hal::digital::v2::*;
+use gpio_cdev as cdev;
 use serde_json as json;
-use xu4_hal::gpio as xu4;
 
-pub enum PinState {
-    High,
-    Low,
+impl From<cdev::errors::Error> for Error {
+    fn from(_: cdev::errors::Error) -> Self {
+        Self::BrokenLimb
+    }
 }
 
-impl Limb for xu4::OutputPin {
+pub struct OutputPin(cdev::LineHandle);
+
+impl Limb for OutputPin {
     fn from_json(config: &json::Value) -> Option<Self> {
-        pin_from_json(xu4::OutputPin::new, config)
+        open_line_handle(config, cdev::LineRequestFlags::OUTPUT).map(|h| OutputPin(h))
     }
 
     fn set(&mut self, value: String) -> Result<(), Error> {
-        let requested_state = PinState::try_from(value)?;
-        match requested_state {
-            PinState::High => self.set_high(),
-            PinState::Low => self.set_low(),
+        match value.as_ref() {
+            "High" => self.0.set_value(1).map_err(|e| e.into()),
+            "Low" => self.0.set_value(0).map_err(|e| e.into()),
+            _ => Err(Error::InvalidValue),
         }
-        .map_err(|_| Error::BrokenLimb)
     }
 
     fn get(&mut self) -> Result<String, Error> {
@@ -38,9 +36,11 @@ impl Limb for xu4::OutputPin {
     }
 }
 
-impl Limb for xu4::InputPin {
+pub struct InputPin(cdev::LineHandle);
+
+impl Limb for InputPin {
     fn from_json(config: &json::Value) -> Option<Self> {
-        pin_from_json(xu4::InputPin::new, config)
+        open_line_handle(config, cdev::LineRequestFlags::INPUT).map(|h| InputPin(h))
     }
 
     fn set(&mut self, _value: String) -> Result<(), Error> {
@@ -48,47 +48,37 @@ impl Limb for xu4::InputPin {
     }
 
     fn get(&mut self) -> Result<String, Error> {
-        if self.is_high().map_err(|_| Error::BrokenLimb)? {
-            Ok(String::from("High"))
-        } else if self.is_low().map_err(|_| Error::BrokenLimb)? {
-            Ok(String::from("Low"))
-        } else {
-            Err(Error::BrokenLimb)
+        let value = self.0.get_value()?;
+        match value {
+            1 => Ok(String::from("High")),
+            0 => Ok(String::from("Low")),
+            _ => Err(Error::BrokenLimb),
         }
     }
 }
 
-fn pin_from_json<F, T>(pin: F, config: &json::Value) -> Option<T>
-where
-    F: Fn(xu4::Chip, u32, xu4::Type) -> Result<T, xu4::Error>,
-{
-    let chip = match &config["chip"] {
-        json::Value::String(s) => xu4::Chip::from_str(&s).ok(),
+fn open_line_handle(
+    config: &json::Value,
+    flags: cdev::LineRequestFlags,
+) -> Option<cdev::LineHandle> {
+    let mut chip = match &config["chip"] {
+        json::Value::String(s) => cdev::Chip::new(s).ok(),
         _ => None,
     }?;
     let line = match &config["line"] {
         json::Value::Number(n) => n.as_u64().and_then(|x| x.try_into().ok()),
         _ => None,
     }?;
-    let pin_type = match &config["pin-type"] {
+    let type_flag = match &config["pin-type"] {
         json::Value::String(s) => match s.as_ref() {
-            "push-pull" => Some(xu4::Type::PushPull),
-            "open-drain" => Some(xu4::Type::OpenDrain),
+            "push-pull" => Some(cdev::LineRequestFlags::empty()),
+            "open-drain" => Some(cdev::LineRequestFlags::OPEN_DRAIN),
             _ => None,
         },
         _ => None,
     }?;
-    pin(chip, line, pin_type).ok()
-}
-
-impl TryFrom<String> for PinState {
-    type Error = Error;
-
-    fn try_from(s: String) -> Result<Self, Self::Error> {
-        match s.as_ref() {
-            "High" => Ok(PinState::High),
-            "Low" => Ok(PinState::Low),
-            _ => Err(Error::InvalidValue),
-        }
-    }
+    chip.get_line(line)
+        .ok()?
+        .request(flags | type_flag, 0, "Phal server")
+        .ok()
 }
