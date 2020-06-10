@@ -1,13 +1,13 @@
 {
     "pin1": {
         "type": "output-pin",
-        "chip": "gpa2",
+        "chip": "/dev/gpiochip28",
         "line": 6,
 		"pin-type": "open-drain"
     },
     "pin2": {
         "type": "input-pin",
-        "chip": "gpx2",
+        "chip": "/dev/gpiochip3",
         "line": 0,
 		"pin-type": "open-drain"
     },

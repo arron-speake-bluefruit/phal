@@ -4,14 +4,16 @@
 
 Phal (Pokes Hardware And Listens) is a reusable component for
 end-to-end testing of embedded devices. The rough idea is to have
-peripherals of your system-under-test connected to a test rig device
-(currently only Odroid XU4s are supported); phal then will provide a
-REST interface for these peripherals which your tests can consume.
+peripherals of your system-under-test connected to a test rig device;
+phal then will provide a REST interface for these peripherals which
+your tests can use.
+
+## Example
 
 The `example` directory contains a Python test suite using phal to
-test itself. The intended set-up here is two XU4s with their UARTs
-connected, and lines connecting pins GPX2.0 on one to GPA2.6 on the
-other and vice versa.
+test itself. The intended set-up here is two Odroids XU4s with their
+UARTs connected, and lines connecting pins GPX2.0 on one to GPA2.6 on
+the other and vice versa.
 
 Change the `MASTER` and `SLAVE` constants in the python file to
 reflect your setup. Then, running `pytest` in the directory should
