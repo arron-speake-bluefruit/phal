@@ -35,6 +35,6 @@ fn main() {
     let config = args()
         .nth(1)
         .and_then(file_contents)
-        .expect("Failed to read config");
+        .unwrap_or("{}".to_string());
     server::run(&types, &config, "0.0.0.0:8000").expect("Failed to run server");
 }
