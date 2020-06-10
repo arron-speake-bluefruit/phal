@@ -87,7 +87,9 @@ pub fn run(types: &LimbTypes, config: &str, addr: impl ToSocketAddrs) -> Option<
     let server = Server::http(addr).ok()?;
     for mut req in server.incoming_requests() {
         let resp = handle_request(&types, &mut limbs, &mut req);
-        req.respond(resp).unwrap();
+        req.respond(resp).unwrap_or_else(|_| {
+            eprintln!("Couldn't respond to request!");
+        });
     }
     Some(())
 }
