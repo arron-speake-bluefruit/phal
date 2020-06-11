@@ -1,7 +1,5 @@
-{ pkgs ? import <nixpkgs> {} }:
-pkgs.mkShell {
+with (import <nixpkgs> {});
+mkShell {
   name = "dev-shell";
-  buildInputs = with pkgs; [
-    cargo python3 rustfmt
-  ];
+  buildInputs = [ cargo python38 python38Packages.pytest rustfmt ];
 }
