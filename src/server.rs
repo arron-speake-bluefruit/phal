@@ -45,6 +45,7 @@ fn handle_config_request(
     match req.method() {
         Method::Get => Response::empty(501).boxed(),
         Method::Post => {
+            limbs.clear();
             let mut config = String::new();
             req.as_reader()
                 .read_to_string(&mut config)

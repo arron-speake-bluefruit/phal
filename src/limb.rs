@@ -50,6 +50,10 @@ impl LimbBindings {
     pub fn get(&mut self, name: &str) -> Option<&mut Box<dyn Limb>> {
         self.0.get_mut(name)
     }
+
+    pub fn clear(&mut self) {
+        self.0 = HashMap::new();
+    }
 }
 
 impl LimbTypes {
