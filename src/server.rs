@@ -83,8 +83,8 @@ fn handle_request(types: &LimbTypes, limbs: &mut LimbBindings, req: &mut Request
         })
 }
 
-pub fn run(types: &LimbTypes, config: &str, addr: impl ToSocketAddrs) -> Option<()> {
-    let mut limbs = LimbBindings::from_json(config, types)?;
+pub fn run(types: &LimbTypes, addr: impl ToSocketAddrs) -> Option<()> {
+    let mut limbs = LimbBindings::new();
     let server = Server::http(addr).ok()?;
     for mut req in server.incoming_requests() {
         let resp = handle_request(&types, &mut limbs, &mut req);

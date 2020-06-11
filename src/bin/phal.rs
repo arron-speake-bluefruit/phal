@@ -11,20 +11,7 @@ use phal::{
     pin, serial, server,
 };
 
-use std::{
-    collections::HashMap,
-    env::args,
-    fs::File,
-    io::{BufReader, Read},
-    path::Path,
-};
-
-fn file_contents<P: AsRef<Path>>(path: P) -> Option<String> {
-    let mut reader = File::open(path).map(BufReader::new).ok()?;
-    let mut s = String::new();
-    reader.read_to_string(&mut s).ok()?;
-    Some(s)
-}
+use std::collections::HashMap;
 
 fn main() {
     let types = limb_types![
@@ -32,9 +19,5 @@ fn main() {
         ("input-pin", pin::InputPin),
         ("serial", serial::Serial)
     ];
-    let config = args()
-        .nth(1)
-        .and_then(file_contents)
-        .unwrap_or("{}".to_string());
-    server::run(&types, &config, "0.0.0.0:8000").expect("Failed to run server");
+    server::run(&types, "0.0.0.0:8000").expect("Failed to run server");
 }

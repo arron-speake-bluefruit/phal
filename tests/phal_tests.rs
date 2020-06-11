@@ -35,19 +35,14 @@ impl Limb for MockLimb {
 fn server_has_endpoints_for_limbs_in_config() {
     thread::spawn(|| {
         let types = limb_types![("foo", MockLimb)];
-        let config = r#"
-        {
-            "bar": {
-                "type": "foo"
-            },
-            "baz": {
-                "type": "foo"
-            }
-        }
-        "#;
-        server::run(&types, config, "localhost:2000").unwrap()
+        server::run(&types, "localhost:2000").unwrap()
     });
     thread::sleep(time::Duration::from_millis(10));
+
+    let config = r#"{"bar":{"type":"foo"},"baz":{"type":"foo"}}"#;
+    ureq::post("http://localhost:2000/config")
+        .send_string(config)
+        .ok();
     assert!(ureq::get("http://localhost:2000/limb/bar").call().ok());
     assert!(ureq::post("http://localhost:2000/limb/bar")
         .send_string("foo")
@@ -62,16 +57,14 @@ fn server_has_endpoints_for_limbs_in_config() {
 fn get_and_post_requests_call_get_and_set_on_a_limb() {
     thread::spawn(|| {
         let types = limb_types![("foo", MockLimb)];
-        let config = r#"
-        {
-            "bar": {
-                "type": "foo"
-            }
-        }
-        "#;
-        server::run(&types, config, "localhost:2001").unwrap()
+        server::run(&types, "localhost:2001").unwrap()
     });
     thread::sleep(time::Duration::from_millis(10));
+
+    let config = r#"{"bar":{"type": "foo"}}"#;
+    ureq::post("http://localhost:2001/config")
+        .send_string(config)
+        .ok();
     ureq::post("http://localhost:2001/limb/bar").send_string("baz");
     assert_eq!(
         ureq::get("http://localhost:2001/limb/bar")
@@ -94,47 +87,16 @@ fn get_and_post_requests_call_get_and_set_on_a_limb() {
 fn a_limb_is_set_to_its_init_config_property_on_start_up_if_it_exists() {
     thread::spawn(|| {
         let types = limb_types![("foo", MockLimb)];
-        let config = r#"
-        {
-            "bar": {
-                "type": "foo",
-                "init": "baz"
-            }
-        }
-        "#;
-        server::run(&types, config, "localhost:2002").unwrap()
+        server::run(&types, "localhost:2002").unwrap()
     });
     thread::sleep(time::Duration::from_millis(10));
+
+    let config = r#"{"bar":{"type":"foo","init":"baz"}}"#;
+    ureq::post("http://localhost:2002/config")
+        .send_string(config)
+        .ok();
     assert_eq!(
         ureq::get("http://localhost:2002/limb/bar")
-            .call()
-            .into_string()
-            .unwrap(),
-        "baz".to_string()
-    );
-}
-
-#[test]
-fn config_can_be_updated_via_config_endpoint() {
-    thread::spawn(|| {
-        let types = limb_types![("foo", MockLimb)];
-        let config = "{}";
-        server::run(&types, config, "localhost:2003").unwrap()
-    });
-    thread::sleep(time::Duration::from_millis(10));
-    let new_config = r#"
-        {
-            "bar": {
-                "type": "foo",
-                "init": "baz"
-            }
-        }
-    "#;
-    assert!(ureq::post("http://localhost:2003/config")
-        .send_string(new_config)
-        .ok());
-    assert_eq!(
-        ureq::get("http://localhost:2003/limb/bar")
             .call()
             .into_string()
             .unwrap(),
