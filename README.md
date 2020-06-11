@@ -3,37 +3,40 @@
 [![builds.sr.ht status](https://builds.sr.ht/~cdo/phal.svg)](https://builds.sr.ht/~cdo/phal?)
 
 Phal (Pokes Hardware And Listens) is a reusable component for
-end-to-end testing of embedded devices. The rough idea is to have
-peripherals of your system-under-test connected to a test rig device;
-phal then will provide a REST interface for these peripherals which
-your tests can use.
+end-to-end testing / remote control of embedded devices, written in
+[Rust](https://www.rust-lang.org/). The rough idea is to have
+peripherals of your device connected to another device running phal;
+you then get a configurable REST interface to .
 
-## Example
+## Development Environment
 
-The `example` directory contains a Python test suite using phal to
+If you use [Nix](https://nixos.org/), `nix-shell` should land you at a
+shell with everything you need.
+
+Alternatively, you can manually install the prequisites:
+
+- [Rust](https://rustup.rs/), with Cargo and `rustfmt`
+- [Python 3](https://www.python.org/), with the pytest and requests
+  libraries (only for the end-to-end test)
+
+## Building
+
+```sh
+cargo build
+cargo test
+```
+
+## End-to-End Test
+
+The `self-test` directory contains a Python test suite using phal to
 test itself. The intended set-up here is two Odroids XU4s with their
 UARTs connected, and lines connecting pins GPX2.0 on one to GPA2.6 on
 the other and vice versa. See [Odroid XU4 GPIO](odroid-xu4-gpio.md)
 for more information on using the XU4's GPIO pins.
 
-Change the `MASTER` and `SLAVE` constants in the python file to
-reflect your setup. Then, running `pytest` in the directory should
-run a quick end-to-end test of the system.
-
-## Building
-
-Phal is written in [Rust](https://www.rust-lang.org/), and is built
-with `cargo`:
-
-```sh
-cargo build
-```
-
-To run the tests:
-
-```sh
-cargo test
-```
+Change the `IP_A` and `IP_B` constants in the python file to the IPs
+of your running test rigs. Then, running `pytest` in the directory
+should run a quick end-to-end test of the system.
 
 ## Contributing
 

@@ -1,0 +1,14 @@
+{
+    "input-pin": {
+        "type": "input-pin",
+        "chip": "/dev/gpiochip3",
+        "line": 0,
+        "pin-type": "push-pull"
+    },
+    "output-pin": {
+        "type": "output-pin",
+        "chip": "/dev/gpiochip28",
+        "line": 6,
+        "pin-type": "push-pull"
+    }
+}
