@@ -9,8 +9,6 @@ pub mod serial;
 pub mod server;
 
 extern crate gpio_cdev;
-#[macro_use]
-extern crate lazy_static;
 extern crate serde_json;
 extern crate serial as system_serial;
 extern crate tiny_http;

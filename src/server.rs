@@ -4,7 +4,6 @@
  */
 
 use crate::limb::{self, Limb, LimbBindings, LimbTypes};
-use regex::Regex;
 use std::net::ToSocketAddrs;
 use tiny_http::*;
 
@@ -63,24 +62,15 @@ fn handle_config_request(
 }
 
 fn handle_request(types: &LimbTypes, limbs: &mut LimbBindings, req: &mut Request) -> ResponseBox {
-    lazy_static! {
-        static ref LIMB_RE: Regex = Regex::new(r"^/limb/([^/]+)$").unwrap();
-        static ref CONFIG_RE: Regex = Regex::new(r"^/config$").unwrap();
+    let url_parts: Vec<&str> = req.url().split('/').filter(|s| !s.is_empty()).collect();
+    match url_parts[0] {
+        "limb" => limbs
+            .get(url_parts[1])
+            .map(|limb| handle_limb_request(limb, req))
+            .unwrap_or(Response::empty(404).boxed()),
+        "config" => handle_config_request(types, limbs, req),
+        _ => Response::empty(400).boxed()
     }
-    LIMB_RE
-        .captures(&req.url().to_string())
-        .and_then(|c| Some(c.get(1)?.as_str()))
-        .map(|name| {
-            limbs
-                .get(name)
-                .map(|limb| handle_limb_request(limb, req))
-                .unwrap_or(Response::empty(404).boxed())
-        })
-        .unwrap_or(if CONFIG_RE.is_match(req.url()) {
-            handle_config_request(types, limbs, req)
-        } else {
-            Response::empty(400).boxed()
-        })
 }
 
 pub fn run(types: &LimbTypes, addr: impl ToSocketAddrs) -> Option<()> {
