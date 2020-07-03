@@ -1,0 +1,3 @@
+[submodule "nixos-on-arm"]
+	path = nixos-on-arm
+	url = https://github.com/illegalprime/nixos-on-arm
