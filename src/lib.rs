@@ -3,6 +3,9 @@
  * Copyright (C) 2020 Callum David O'Brien
  */
 
+mod http_status_code;
+mod response_data;
+
 pub mod limb;
 pub mod pin;
 pub mod serial;
