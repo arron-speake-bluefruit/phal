@@ -7,20 +7,64 @@ use crate::limb::{self, Limb, LimbBindings, LimbTypes};
 use std::net::ToSocketAddrs;
 use tiny_http::*;
 
-fn limb_error_response(err: limb::Error) -> ResponseBox {
+#[derive(Clone, Copy)]
+enum HTTPError {
+    BadRequest,
+    Forbidden,
+    NotFound,
+    MethodNotAllowed,
+    NotImplemented,
+}
+
+impl HTTPError {
+    pub fn status_code(&self) -> u16 {
+        use HTTPError::*;
+        match self {
+            BadRequest => 400,
+            Forbidden => 403,
+            NotFound => 404,
+            MethodNotAllowed => 405,
+            NotImplemented => 501,
+        }
+    }
+
+    pub fn name(&self) -> &'static str {
+        use HTTPError::*;
+        match self {
+            BadRequest => "Bad request",
+            Forbidden => "Forbidden",
+            NotFound => "Not found",
+            MethodNotAllowed => "Method not allowed",
+            NotImplemented => "Not implemented",
+        }
+    }
+}
+
+fn generate_error(error: HTTPError, content: &str) -> ResponseBox {
+    let code = error.status_code();
+    let name = error.name();
+    eprintln!("Encountered error {} ({}).", code, name);
+    let message = format!("{} {}\n{}", code, name, content);
+    Response::from_string(message)
+        .with_status_code(code)
+        .boxed()
+}
+
+fn get_limb_error_name(error: limb::Error) -> &'static str {
     use limb::Error::*;
-    Response::empty(match err {
-        BrokenLimb => 500,
-        InvalidValue => 400,
-        InvalidOperation => 400,
-    })
-    .boxed()
+    match error {
+        BrokenLimb => "Broken limb",
+        InvalidValue => "Invalid Value",
+        InvalidOperation => "Invalid operation",
+    }
 }
 
 fn handle_limb_get_request(limb: &mut Box<dyn Limb>) -> ResponseBox {
     match limb.get() {
-        Ok(value) => Response::from_string(value).boxed(),
-        Err(error) => limb_error_response(error)
+        Ok(value) =>
+            Response::from_string(value).boxed(),
+        Err(error) =>
+            generate_error(HTTPError::BadRequest, get_limb_error_name(error)),
     }
 }
 
@@ -29,8 +73,10 @@ fn set_limb_value(
     value: String
 ) -> ResponseBox {
     match limb.set(value) {
-        Ok(_) => Response::empty(200).boxed(),
-        Err(_) => Response::empty(400).boxed(),
+        Ok(_) =>
+            Response::empty(200).boxed(),
+        Err(error) =>
+            generate_error(HTTPError::BadRequest, get_limb_error_name(error)),
     }
 }
 
@@ -41,8 +87,10 @@ fn handle_limb_post_request(
     let mut value = String::new();
     let result = request.as_reader().read_to_string(&mut value);
     match result {
-        Ok(_) => set_limb_value(limb, value),
-        Err(_) => Response::empty(400).boxed(),
+        Ok(_) =>
+            set_limb_value(limb, value),
+        Err(_) =>
+            generate_error(HTTPError::BadRequest, "Failed to read request"),
     }
 }
 
@@ -53,13 +101,15 @@ fn handle_limb_request(
     match request.method() {
         Method::Get => handle_limb_get_request(limb),
         Method::Post => handle_limb_post_request(limb, request),
-        _ => Response::empty(405).boxed(),
+        _ =>
+            generate_error(HTTPError::MethodNotAllowed, "Allowed: GET, POST"),
     }
 }
 
 fn handle_config_get_request() -> ResponseBox {
-    // Unimplemented
-    Response::empty(501).boxed()
+    generate_error(
+        HTTPError::NotImplemented,
+        "Config retrieval is not yet implemented.")
 }
 
 fn update_limb_configuration(
@@ -74,7 +124,9 @@ fn update_limb_configuration(
             *limbs = new_limbs;
             Response::empty(200).boxed()
         }
-        None => Response::empty(400).boxed(),
+        None => generate_error(
+            HTTPError::BadRequest,
+            "The provided configuration was ill-formed."),
     }
 }
 
@@ -86,8 +138,10 @@ fn handle_config_post_request(
     let mut config = String::new();
     let result = request.as_reader().read_to_string(&mut config);
     match result {
-        Ok(_) => update_limb_configuration(config, types, limbs),
-        Err(_) => Response::empty(400).boxed(),
+        Ok(_) =>
+            update_limb_configuration(config, types, limbs),
+        Err(_) =>
+            generate_error(HTTPError::BadRequest, "Failed to read request"),
     }
 }
 
@@ -97,9 +151,12 @@ fn handle_config_request(
     request: &mut Request,
 ) -> ResponseBox {
     match request.method() {
-        Method::Get => handle_config_get_request(),
-        Method::Post => handle_config_post_request(types, limbs, request),
-        _ => Response::empty(405).boxed(),
+        Method::Get =>
+            handle_config_get_request(),
+        Method::Post =>
+            handle_config_post_request(types, limbs, request),
+        _ =>
+            generate_error(HTTPError::MethodNotAllowed, "Allowed: GET, POST"),
     }
 }
 
@@ -113,10 +170,10 @@ fn try_handle_limb_request<'a, I> (
             if let Some(limb) = limbs.get(limb_name) {
                 handle_limb_request(limb, request)
             } else {
-                Response::empty(404).boxed()
+                generate_error(HTTPError::NotFound, "That limb does not exist")
             }
         },
-        None => Response::empty(403).boxed(),
+        None => generate_error(HTTPError::Forbidden, ""),
     }
 }
 
@@ -131,7 +188,7 @@ fn handle_request(
     match url.next() {
         Some("limb") => try_handle_limb_request(url, limbs, req),
         Some("config") => handle_config_request(types, limbs, req),
-        Some(_) => Response::empty(404).boxed(),
+        Some(_) => generate_error(HTTPError::NotFound, ""),
         None => Response::from_string("PHAL Server").boxed(),
     }
 }
