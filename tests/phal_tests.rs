@@ -9,7 +9,7 @@ extern crate ureq;
 
 use phal::{
     limb::{Error, Limb, LimbTypes},
-    server,
+    server::PHALServer,
 };
 use serde_json as json;
 use std::{collections::HashMap, thread, time};
@@ -35,7 +35,7 @@ impl Limb for MockLimb {
 fn server_has_endpoints_for_limbs_in_config() {
     thread::spawn(|| {
         let types = limb_types![("foo", MockLimb)];
-        server::run(&types, "localhost:2000").unwrap()
+        PHALServer::run_new(types, "localhost:2000").unwrap()
     });
     thread::sleep(time::Duration::from_millis(10));
 
@@ -57,7 +57,7 @@ fn server_has_endpoints_for_limbs_in_config() {
 fn get_and_post_requests_call_get_and_set_on_a_limb() {
     thread::spawn(|| {
         let types = limb_types![("foo", MockLimb)];
-        server::run(&types, "localhost:2001").unwrap()
+        PHALServer::run_new(types, "localhost:2001").unwrap()
     });
     thread::sleep(time::Duration::from_millis(10));
 
@@ -71,7 +71,7 @@ fn get_and_post_requests_call_get_and_set_on_a_limb() {
             .call()
             .into_string()
             .unwrap(),
-        "baz".to_string()
+        "200 OK\nbaz".to_string()
     );
     ureq::post("http://localhost:2001/limb/bar").send_string("quux");
     assert_eq!(
@@ -79,7 +79,7 @@ fn get_and_post_requests_call_get_and_set_on_a_limb() {
             .call()
             .into_string()
             .unwrap(),
-        "quux".to_string()
+        "200 OK\nquux".to_string()
     );
 }
 
@@ -87,7 +87,7 @@ fn get_and_post_requests_call_get_and_set_on_a_limb() {
 fn a_limb_is_set_to_its_init_config_property_on_start_up_if_it_exists() {
     thread::spawn(|| {
         let types = limb_types![("foo", MockLimb)];
-        server::run(&types, "localhost:2002").unwrap()
+        PHALServer::run_new(types, "localhost:2002").unwrap()
     });
     thread::sleep(time::Duration::from_millis(10));
 
@@ -100,6 +100,6 @@ fn a_limb_is_set_to_its_init_config_property_on_start_up_if_it_exists() {
             .call()
             .into_string()
             .unwrap(),
-        "baz".to_string()
+        "200 OK\nbaz".to_string()
     );
 }
