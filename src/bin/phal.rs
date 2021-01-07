@@ -8,19 +8,23 @@ extern crate phal;
 
 use phal::{
     limb::{Limb, LimbTypes},
-    pin, serial, server,
+    pin, serial, server::PHALServer,
 };
 
 use std::collections::HashMap;
 
 fn main() {
+    let address = "localhost:8000";
     let types = limb_types![
         ("output-pin", pin::OutputPin),
         ("input-pin", pin::InputPin),
         ("serial", serial::Serial)
     ];
-    let result = server::run(&types, "0.0.0.0:8000");
-    if result.is_none() {
-        eprintln!("The server stopped unexpectedly.");
+    
+    match PHALServer::run_new(types, address) {
+        Ok(_) =>
+            eprintln!("The server stopped unexpectedly."),
+        Err(error) =>
+            eprintln!("Failed to start server: {}", error),
     }
 }

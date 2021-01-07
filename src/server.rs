@@ -8,6 +8,51 @@ use std::net::ToSocketAddrs;
 use tiny_http::*;
 use crate::response_data::ResponseData;
 
+pub struct PHALServer {
+    types: LimbTypes,
+    limbs: LimbBindings,
+    server: Server,
+}
+
+type PHALServerError = std::boxed::Box<
+    dyn std::error::Error +
+    std::marker::Send +
+    std::marker::Sync
+>;
+
+impl PHALServer {
+    pub fn new(
+        types: LimbTypes,
+        address: impl ToSocketAddrs,
+    ) -> Result<Self, PHALServerError> {
+        let limbs = LimbBindings::new();
+        Server::http(address)
+            .map(|server| {
+                Self { types, limbs, server }
+            })
+    }
+
+    pub fn run(mut self) {
+        for mut request in self.server.incoming_requests() {
+            let response = handle_request(
+                &self.types, &mut self.limbs, &mut request);
+            let result = request.respond(response.into());
+            if result.is_err() {
+                eprintln!("Failed to respond to request.");
+            }
+        }
+    }
+
+    pub fn run_new(
+        types: LimbTypes,
+        address: impl ToSocketAddrs,
+    ) -> Result<(), PHALServerError> {
+        let server = Self::new(types, address)?;
+        server.run();
+        Ok(())
+    }
+}
+
 fn get_limb_error_name(error: limb::Error) -> &'static str {
     use limb::Error::*;
     match error {
@@ -139,25 +184,4 @@ fn handle_request(
         Some(_) => ResponseData::not_found(),
         None => ResponseData::site_index(),
     }
-}
-
-pub fn run(types: &LimbTypes, address: impl ToSocketAddrs) -> Option<()> {
-    let mut limbs = LimbBindings::new();
-    let server = match Server::http(address) {
-        Ok(s) => s,
-        Err(error) => {
-            eprintln!("Server Error: {}", error);
-            return None;
-        }
-    };
-
-    for mut request in server.incoming_requests() {
-        let response = handle_request(&types, &mut limbs, &mut request);
-        let result = request.respond(response.into());
-        if result.is_err() {
-            eprintln!("Failed to respond to request.");
-        }
-    }
-
-    Some(())
 }
