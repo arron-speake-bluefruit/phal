@@ -17,22 +17,43 @@ fn limb_error_response(err: limb::Error) -> ResponseBox {
     .boxed()
 }
 
-fn handle_limb_request(limb: &mut Box<dyn Limb>, req: &mut Request) -> ResponseBox {
-    match req.method() {
-        Method::Get => limb.get().map_or_else(limb_error_response, |val| {
-            Response::from_string(val).boxed()
-        }),
-        Method::Post => {
-            let mut val = String::new();
-            req.as_reader()
-                .read_to_string(&mut val)
-                .map(|_| {
-                    limb.set(val)
-                        .map_or_else(limb_error_response, |_| Response::empty(200).boxed())
-                })
-                .unwrap_or(Response::empty(400).boxed())
-        }
-        _ => Response::empty(400).boxed(),
+fn handle_limb_get_request(limb: &mut Box<dyn Limb>) -> ResponseBox {
+    match limb.get() {
+        Ok(value) => Response::from_string(value).boxed(),
+        Err(error) => limb_error_response(error)
+    }
+}
+
+fn set_limb_value(
+    limb: &mut Box<dyn Limb>,
+    value: String
+) -> ResponseBox {
+    match limb.set(value) {
+        Ok(_) => Response::empty(200).boxed(),
+        Err(_) => Response::empty(400).boxed(),
+    }
+}
+
+fn handle_limb_post_request(
+    limb: &mut Box<dyn Limb>,
+    request: &mut Request,
+) -> ResponseBox {
+    let mut value = String::new();
+    let result = request.as_reader().read_to_string(&mut value);
+    match result {
+        Ok(_) => set_limb_value(limb, value),
+        Err(_) => Response::empty(400).boxed(),
+    }
+}
+
+fn handle_limb_request(
+    limb: &mut Box<dyn Limb>,
+    request: &mut Request,
+) -> ResponseBox {
+    match request.method() {
+        Method::Get => handle_limb_get_request(limb),
+        Method::Post => handle_limb_post_request(limb, request),
+        _ => Response::empty(405).boxed(),
     }
 }
 
@@ -61,11 +82,11 @@ fn handle_config_request(
     }
 }
 
-fn try_handle_limb_request(
-    url: Box<dyn Iterator<Item = &str>>,
+fn try_handle_limb_request<'a, I> (
+    mut url: I,
     limbs: &mut LimbBindings,
     request: &mut Request,
-) -> ResponseBox {
+) -> ResponseBox where I: Iterator<Item = &'a str> {
     match url.next() {
         Some(limb_name) => {
             if let Some(limb) = limbs.get(limb_name) {
@@ -81,10 +102,10 @@ fn try_handle_limb_request(
 fn handle_request(
     types: &LimbTypes,
     limbs: &mut LimbBindings,
-    req: &mut Request
+    req: &mut Request,
 ) -> ResponseBox {
-    let mut url = req.url()
-        .split('/')
+    let url_string = req.url().to_owned();
+    let mut url = url_string.split('/')
         .filter(|s| !s.is_empty());
     match url.next() {
         Some("limb") => try_handle_limb_request(url, limbs, req),
