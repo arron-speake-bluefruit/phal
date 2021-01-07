@@ -138,7 +138,13 @@ fn handle_request(
 
 pub fn run(types: &LimbTypes, address: impl ToSocketAddrs) -> Option<()> {
     let mut limbs = LimbBindings::new();
-    let server = Server::http(address).ok()?;
+    let server = match Server::http(address) {
+        Ok(s) => s,
+        Err(error) => {
+            eprintln!("Server Error: {}", error);
+            return None;
+        }
+    };
 
     for mut request in server.incoming_requests() {
         let response = handle_request(&types, &mut limbs, &mut request);
