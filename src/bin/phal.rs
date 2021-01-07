@@ -19,5 +19,8 @@ fn main() {
         ("input-pin", pin::InputPin),
         ("serial", serial::Serial)
     ];
-    server::run(&types, "0.0.0.0:8000").expect("Failed to run server");
+    let result = server::run(&types, "0.0.0.0:8000");
+    if result.is_none() {
+        eprintln!("The server stopped unexpectedly.");
+    }
 }
