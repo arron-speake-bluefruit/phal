@@ -61,6 +61,23 @@ fn handle_config_request(
     }
 }
 
+fn try_handle_limb_request(
+    url: Box<dyn Iterator<Item = &str>>,
+    limbs: &mut LimbBindings,
+    request: &mut Request,
+) -> ResponseBox {
+    match url.next() {
+        Some(limb_name) => {
+            if let Some(limb) = limbs.get(limb_name) {
+                handle_limb_request(limb, request)
+            } else {
+                Response::empty(404).boxed()
+            }
+        },
+        None => Response::empty(403).boxed(),
+    }
+}
+
 fn handle_request(
     types: &LimbTypes,
     limbs: &mut LimbBindings,
@@ -70,9 +87,7 @@ fn handle_request(
         .split('/')
         .filter(|s| !s.is_empty());
     match url.next() {
-        Some("limb") => limbs.get(url.next().unwrap_or(""))
-            .map(|limb| handle_limb_request(limb, req))
-            .unwrap_or_else(|| { Response::empty(404).boxed() }),
+        Some("limb") => try_handle_limb_request(url, limbs, req),
         Some("config") => handle_config_request(types, limbs, req),
         Some(_) => Response::empty(404).boxed(),
         None => Response::from_string("PHAL Server").boxed(),
