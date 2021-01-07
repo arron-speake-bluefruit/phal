@@ -20,7 +20,7 @@ fn main() {
         ("input-pin", pin::InputPin),
         ("serial", serial::Serial)
     ];
-    
+
     match PHALServer::run_new(types, address) {
         Ok(_) =>
             eprintln!("The server stopped unexpectedly."),
