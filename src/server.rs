@@ -61,15 +61,21 @@ fn handle_config_request(
     }
 }
 
-fn handle_request(types: &LimbTypes, limbs: &mut LimbBindings, req: &mut Request) -> ResponseBox {
-    let url_parts: Vec<&str> = req.url().split('/').filter(|s| !s.is_empty()).collect();
-    match url_parts[0] {
-        "limb" => limbs
-            .get(url_parts[1])
+fn handle_request(
+    types: &LimbTypes,
+    limbs: &mut LimbBindings,
+    req: &mut Request
+) -> ResponseBox {
+    let mut url = req.url()
+        .split('/')
+        .filter(|s| !s.is_empty());
+    match url.next() {
+        Some("limb") => limbs.get(url.next().unwrap_or(""))
             .map(|limb| handle_limb_request(limb, req))
-            .unwrap_or(Response::empty(404).boxed()),
-        "config" => handle_config_request(types, limbs, req),
-        _ => Response::empty(400).boxed()
+            .unwrap_or_else(|| { Response::empty(404).boxed() }),
+        Some("config") => handle_config_request(types, limbs, req),
+        Some(_) => Response::empty(404).boxed(),
+        None => Response::from_string("PHAL Server").boxed(),
     }
 }
 
