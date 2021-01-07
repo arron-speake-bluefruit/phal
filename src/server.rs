@@ -73,14 +73,17 @@ fn handle_request(types: &LimbTypes, limbs: &mut LimbBindings, req: &mut Request
     }
 }
 
-pub fn run(types: &LimbTypes, addr: impl ToSocketAddrs) -> Option<()> {
+pub fn run(types: &LimbTypes, address: impl ToSocketAddrs) -> Option<()> {
     let mut limbs = LimbBindings::new();
-    let server = Server::http(addr).ok()?;
-    for mut req in server.incoming_requests() {
-        let resp = handle_request(&types, &mut limbs, &mut req);
-        req.respond(resp).unwrap_or_else(|_| {
-            eprintln!("Couldn't respond to request!");
-        });
+    let server = Server::http(address).ok()?;
+
+    for mut request in server.incoming_requests() {
+        let response = handle_request(&types, &mut limbs, &mut request);
+        let result = request.respond(response);
+        if result.is_err() {
+            eprintln!("Failed to respond to request.");
+        }
     }
+
     Some(())
 }
