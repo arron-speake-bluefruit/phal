@@ -57,28 +57,49 @@ fn handle_limb_request(
     }
 }
 
+fn handle_config_get_request() -> ResponseBox {
+    // Unimplemented
+    Response::empty(501).boxed()
+}
+
+fn update_limb_configuration(
+    config: String,
+    types: &LimbTypes,
+    limbs: &mut LimbBindings
+) -> ResponseBox {
+    // For reasons beyond me, from_json fails if limbs is not first cleared.
+    limbs.clear();
+    match LimbBindings::from_json(&config, types) {
+        Some(new_limbs) => {
+            *limbs = new_limbs;
+            Response::empty(200).boxed()
+        }
+        None => Response::empty(400).boxed(),
+    }
+}
+
+fn handle_config_post_request(
+    types: &LimbTypes,
+    limbs: &mut LimbBindings,
+    request: &mut Request,
+) -> ResponseBox {
+    let mut config = String::new();
+    let result = request.as_reader().read_to_string(&mut config);
+    match result {
+        Ok(_) => update_limb_configuration(config, types, limbs),
+        Err(_) => Response::empty(400).boxed(),
+    }
+}
+
 fn handle_config_request(
     types: &LimbTypes,
     limbs: &mut LimbBindings,
-    req: &mut Request,
+    request: &mut Request,
 ) -> ResponseBox {
-    match req.method() {
-        Method::Get => Response::empty(501).boxed(),
-        Method::Post => {
-            limbs.clear();
-            let mut config = String::new();
-            req.as_reader()
-                .read_to_string(&mut config)
-                .map(|_| match LimbBindings::from_json(&config, types) {
-                    Some(new_limbs) => {
-                        *limbs = new_limbs;
-                        Response::empty(200).boxed()
-                    }
-                    None => Response::empty(400).boxed(),
-                })
-                .unwrap_or(Response::empty(400).boxed())
-        }
-        _ => Response::empty(400).boxed(),
+    match request.method() {
+        Method::Get => handle_config_get_request(),
+        Method::Post => handle_config_post_request(types, limbs, request),
+        _ => Response::empty(405).boxed(),
     }
 }
 
