@@ -1,3 +1,5 @@
+// Copyright (C) 2020 Arron Speake
+
 #[derive(Clone, Copy)]
 pub enum HTTPStatusCode {
     OK,

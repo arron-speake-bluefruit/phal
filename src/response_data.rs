@@ -1,3 +1,5 @@
+// Copyright (C) 2020 Arron Speake
+
 use crate::http_status_code::HTTPStatusCode;
 use tiny_http::{ Response, ResponseBox };
 
