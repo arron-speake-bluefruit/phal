@@ -66,15 +66,7 @@ impl ResponseData {
     }
 
     pub fn site_index() -> Self {
-        // TODO: Decouple site index page generation and ResponseData
-        Self::ok(
-            r"GET /config - Gets limb configuration (Unimplemented).
-POST /config - Configures limb.
-GET /limb/X - Reads limb X.
-POST /limb/X - Writes limb X.
-GET /info/limbs - Gets list of configured limbs.
-GET /info/types - Gets list of available limb types.",
-        )
+        Self::ok(include_str!("../assets/index.html"))
     }
 }
 
