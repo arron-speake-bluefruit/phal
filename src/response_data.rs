@@ -64,7 +64,15 @@ impl ResponseData {
   }
 
   pub fn site_index() -> Self {
-        Self::ok("PHAL Server")
+        // TODO: Decouple site index page generation and ResponseData
+        Self::ok(
+            r"GET /config - Gets limb configuration (Unimplemented).
+POST /config - Configures limb.
+GET /limb/X - Reads limb X.
+POST /limb/X - Writes limb X.
+GET /info/limbs - Gets list of configured limbs.
+GET /info/types - Gets list of available limb types."
+        )
   }
 }
 
