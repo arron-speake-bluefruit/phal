@@ -31,6 +31,8 @@ impl Limb for MockLimb {
         self.0 = value;
         Ok(())
     }
+
+    fn type_name(&self) -> &'static str { "mock-limb" }
 }
 
 #[test]
