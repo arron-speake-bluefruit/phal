@@ -42,15 +42,12 @@ impl Limb for Serial {
     }
 
     fn get(&mut self) -> Result<String, Error> {
-        let mut v: Vec<u8> = Vec::new();
-        loop {
-            let mut buffer = [0; 1];
-            if let Err(_) = self.0.read(&mut buffer) {
-                break;
-            }
-            v.push(buffer[0]);
-        }
-        String::from_utf8(v).map_err(|_| Error::BrokenLimb)
+        let mut bytes = Vec::new();
+        let _ = self.0.read_to_end(&mut bytes);
+        // ^ Returns error when reaching EOF for some reason. For now, just
+        // ignore the error and return partial/empty result below.
+        String::from_utf8(bytes)
+            .map_err(|_| Error::BrokenLimb)
     }
 }
 
