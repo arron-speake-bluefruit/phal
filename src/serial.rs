@@ -49,6 +49,8 @@ impl Limb for Serial {
         String::from_utf8(bytes)
             .map_err(|_| Error::BrokenLimb)
     }
+
+    fn type_name(&self) -> &'static str { "serial" }
 }
 
 fn port_settings_from_json(config: &json::Value) -> Option<serial::PortSettings> {

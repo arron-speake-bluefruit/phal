@@ -34,6 +34,8 @@ impl Limb for OutputPin {
     fn get(&mut self) -> Result<String, Error> {
         Err(Error::InvalidOperation)
     }
+
+    fn type_name(&self) -> &'static str { "output-pin" }
 }
 
 pub struct InputPin(cdev::LineHandle);
@@ -55,6 +57,8 @@ impl Limb for InputPin {
             _ => Err(Error::BrokenLimb),
         }
     }
+
+    fn type_name(&self) -> &'static str { "input-pin" }
 }
 
 fn open_line_handle(
