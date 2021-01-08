@@ -75,7 +75,7 @@ fn get_and_post_requests_call_get_and_set_on_a_limb() {
             .call()
             .into_string()
             .unwrap(),
-        "200 OK\nbaz".to_string()
+        "baz".to_string()
     );
     ureq::post("http://localhost:2001/limb/bar").send_string("quux");
     assert_eq!(
@@ -83,7 +83,7 @@ fn get_and_post_requests_call_get_and_set_on_a_limb() {
             .call()
             .into_string()
             .unwrap(),
-        "200 OK\nquux".to_string()
+        "quux".to_string()
     );
 }
 
@@ -104,6 +104,6 @@ fn a_limb_is_set_to_its_init_config_property_on_start_up_if_it_exists() {
             .call()
             .into_string()
             .unwrap(),
-        "200 OK\nbaz".to_string()
+        "baz".to_string()
     );
 }
