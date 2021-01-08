@@ -14,7 +14,7 @@ use phal::{
 use std::collections::HashMap;
 
 fn main() {
-    let address = "localhost:8000";
+    let address = "0.0.0.0:8000";
     let types = limb_types![
         ("output-pin", pin::OutputPin),
         ("input-pin", pin::InputPin),
