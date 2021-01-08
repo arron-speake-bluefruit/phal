@@ -169,6 +169,14 @@ impl PHALServer {
         }
     }
 
+    fn handle_info_types_request(&self) -> ResponseData {
+        let mut content = String::new();
+        for name in self.types.names() {
+            content += &format!("{}\n", name);
+        }
+        ResponseData::ok(content.as_str())
+    }
+
     fn handle_info_limbs_request(&self) -> ResponseData {
         let mut content = String::new();
         for (key, value) in self.limbs.iter() {
@@ -184,6 +192,7 @@ impl PHALServer {
         mut url: I,
     ) -> ResponseData where I: Iterator<Item = &'a str> {
         match url.next() {
+            Some("types") => self.handle_info_types_request(),
             Some("limbs") => self.handle_info_limbs_request(),
             Some(_) => ResponseData::not_found(),
             None => ResponseData::forbidden(),
