@@ -2,69 +2,69 @@ use crate::http_status_code::HTTPStatusCode;
 use tiny_http::{ Response, ResponseBox };
 
 pub struct ResponseData {
-  pub code: HTTPStatusCode,
-  pub content: String,
+    pub code: HTTPStatusCode,
+    pub content: String,
 }
 
 impl ResponseData {
   pub fn configure_success() -> Self {
       Self {
-          code: HTTPStatusCode::OK,
-          content: "Configuration completed successfullly.".to_owned()
+            code: HTTPStatusCode::OK,
+            content: "Configuration completed successfullly.".to_owned()
       }
   }
 
   pub fn not_found() -> Self {
       Self {
-          code: HTTPStatusCode::NotFound,
-          content: "".to_owned(),
+            code: HTTPStatusCode::NotFound,
+            content: "".to_owned(),
       }
   }
 
   pub fn limb_not_found() -> Self {
       Self {
-          code: HTTPStatusCode::NotFound,
-          content: "That limb does not exist.".to_owned()
+            code: HTTPStatusCode::NotFound,
+            content: "That limb does not exist.".to_owned()
       }
   }
 
   pub fn ok(content: &str) -> Self {
       Self {
-          code: HTTPStatusCode::OK,
-          content: content.to_owned(),
+            code: HTTPStatusCode::OK,
+            content: content.to_owned(),
       }
   }
 
   pub fn bad_request(content: &str) -> Self {
       Self {
-          code: HTTPStatusCode::BadRequest,
-          content: content.to_owned(),
+            code: HTTPStatusCode::BadRequest,
+            content: content.to_owned(),
       }
   }
 
   pub fn method_not_allowed(content: &str) -> Self {
       Self {
-          code: HTTPStatusCode::MethodNotAllowed,
-          content: content.to_owned(),
+            code: HTTPStatusCode::MethodNotAllowed,
+            content: content.to_owned(),
       }
   }
 
   pub fn not_implemented(content: &str) -> Self {
       Self {
-          code: HTTPStatusCode::NotImplemented,
-          content: content.to_owned(),
+            code: HTTPStatusCode::NotImplemented,
+            content: content.to_owned(),
       }
   }
 
   pub fn forbidden() -> Self {
       Self {
-          code: HTTPStatusCode::Forbidden,
-          content: "".to_owned(),
+            code: HTTPStatusCode::Forbidden,
+            content: "".to_owned(),
       }
   }
 
   pub fn site_index() -> Self {
-      Self::ok("PHAL Server")
+        Self::ok("PHAL Server")
   }
 }
 
