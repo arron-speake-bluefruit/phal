@@ -69,12 +69,17 @@ impl ResponseData {
 }
 
 impl Into<ResponseBox> for ResponseData {
-  fn into(self) -> tiny_http::ResponseBox {
-      let code = self.code.status_code();
-      let name = self.code.name();
-      let message = format!("{} {}\n{}", code, name, self.content);
-      Response::from_string(message)
-          .with_status_code(code)
-          .boxed()
-  }
+    fn into(self) -> tiny_http::ResponseBox {
+        if let HTTPStatusCode::OK = self.code {
+            Response::from_string(self.content)
+                .boxed()
+        } else {
+            let code = self.code.status_code();
+            let name = self.code.name();
+            let message = format!("{} {}\n{}", code, name, self.content);
+            Response::from_string(message)
+               .with_status_code(code)
+                .boxed()
+        }
+    }
 }
