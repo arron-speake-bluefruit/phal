@@ -63,14 +63,14 @@ impl PHALServer {
             response.code.name(),
         )
     }
-    
+
     fn handle_limb_get_request(limb: &mut Box<dyn Limb>) -> ResponseData {
         match limb.get() {
             Ok(value) => ResponseData::ok(value.as_str()),
             Err(error) => ResponseData::bad_request(get_limb_error_name(error))
         }
     }
-    
+
     fn set_limb_value(
         limb: &mut Box<dyn Limb>,
         value: String
@@ -80,7 +80,7 @@ impl PHALServer {
             Err(error) => ResponseData::bad_request(get_limb_error_name(error)),
         }
     }
-    
+
     fn handle_limb_post_request(
         limb: &mut Box<dyn Limb>,
         request: &mut Request,
@@ -92,7 +92,7 @@ impl PHALServer {
             Err(_) => ResponseData::bad_request("Failed to read request"),
         }
     }
-    
+
     fn handle_limb_request(
         limb: &mut Box<dyn Limb>,
         request: &mut Request,
@@ -103,12 +103,12 @@ impl PHALServer {
             _ => ResponseData::method_not_allowed("Allowed: GET, POST"),
         }
     }
-    
+
     fn handle_config_get_request() -> ResponseData {
         ResponseData::not_implemented(
             "Configuration retrieval is not yet implemented.")
     }
-    
+
     fn update_limb_configuration(
         &mut self,
         config: String,
@@ -124,7 +124,7 @@ impl PHALServer {
                 "The provided configuration was ill-formed."),
         }
     }
-    
+
     fn handle_config_post_request(
         &mut self,
         request: &mut Request,
@@ -137,7 +137,7 @@ impl PHALServer {
             Err(_) => ResponseData::bad_request("Failed to read request"),
         }
     }
-    
+
     fn handle_config_request(
         &mut self,
         request: &mut Request,
@@ -151,7 +151,7 @@ impl PHALServer {
                 ResponseData::bad_request("Allowed: GET, POST"),
         }
     }
-    
+
     fn try_handle_limb_request<'a, I> (
         &mut self,
         mut url: I,
@@ -168,7 +168,27 @@ impl PHALServer {
             None => ResponseData::forbidden()
         }
     }
-    
+
+    fn handle_info_limbs_request(&self) -> ResponseData {
+        for (key, value) in self.limbs.iter() {
+            let name : String = key.escape_default()
+                .collect();
+            content += &format!("\"{}\": {}\n", name, value.type_name());
+        }
+        ResponseData::ok(content.as_str())
+    }
+
+    fn handle_info_request<'a, I>(
+        &mut self,
+        mut url: I,
+    ) -> ResponseData where I: Iterator<Item = &'a str> {
+        match url.next() {
+            Some("limbs") => self.handle_info_limbs_request(),
+            Some(_) => ResponseData::not_found(),
+            None => ResponseData::forbidden(),
+        }
+    }
+
     fn handle_request(&mut self, req: &mut Request) -> ResponseData {
         let url_string = req.url().to_owned();
         let mut url = url_string.split('/')
@@ -176,6 +196,7 @@ impl PHALServer {
         match url.next() {
             Some("limb") => self.try_handle_limb_request(url, req),
             Some("config") => self.handle_config_request(req),
+            Some("info") => self.handle_info_request(url),
             Some(_) => ResponseData::not_found(),
             None => ResponseData::site_index(),
         }
