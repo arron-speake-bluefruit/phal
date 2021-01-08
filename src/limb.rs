@@ -23,7 +23,11 @@ pub trait Limb: Send + Sync {
     fn type_name(&self) -> &'static str;
 }
 
-pub struct LimbTypes(HashMap<String, Box<dyn Fn(&json::Value) -> Option<Box<dyn Limb>>>>);
+type LimbTypesHashMapKey =
+    Box<dyn Fn(&serde_json::Value) -> Option<Box<dyn Limb>>>;
+type LimbTypesHashMap = HashMap<String, LimbTypesHashMapKey>;
+
+pub struct LimbTypes(LimbTypesHashMap);
 
 pub struct LimbBindings(HashMap<String, Box<dyn Limb>>);
 
@@ -68,10 +72,11 @@ impl LimbBindings {
 }
 
 impl LimbTypes {
-    pub fn from(
-        h: HashMap<String, Box<dyn Fn(&serde_json::Value) -> Option<Box<dyn Limb>>>>,
-    ) -> Self {
-        LimbTypes(h)
+    pub fn from(h: LimbTypesHashMap) -> Self { LimbTypes(h) }
+
+    pub fn names(&self) ->
+        std::collections::hash_map::Keys<String, LimbTypesHashMapKey> {
+        self.0.keys()
     }
 }
 
