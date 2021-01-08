@@ -36,6 +36,7 @@ impl PHALServer {
         let server = self.server.take().unwrap();
         for mut request in server.incoming_requests() {
             let response = self.handle_request(&mut request);
+            Self::log_response(&request, &response);
             let result = request.respond(response.into());
             if result.is_err() {
                 eprintln!("Failed to respond to request.");
@@ -50,6 +51,17 @@ impl PHALServer {
         let server = Self::new(types, address)?;
         server.run();
         Ok(())
+    }
+
+    fn log_response(request: &Request, response: &ResponseData) {
+        println!(
+            "[{}] {} {} ~ {} {}",
+            request.remote_addr().ip(),
+            request.method(),
+            request.url(),
+            response.code.status_code(),
+            response.code.name(),
+        )
     }
     
     fn handle_limb_get_request(limb: &mut Box<dyn Limb>) -> ResponseData {
