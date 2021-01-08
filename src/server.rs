@@ -170,6 +170,7 @@ impl PHALServer {
     }
 
     fn handle_info_limbs_request(&self) -> ResponseData {
+        let mut content = String::new();
         for (key, value) in self.limbs.iter() {
             let name : String = key.escape_default()
                 .collect();
