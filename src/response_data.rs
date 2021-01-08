@@ -1,7 +1,7 @@
 // Copyright (C) 2020 Arron Speake
 
 use crate::http_status_code::HTTPStatusCode;
-use tiny_http::{ Response, ResponseBox };
+use tiny_http::{Response, ResponseBox};
 
 pub struct ResponseData {
     pub code: HTTPStatusCode,
@@ -9,63 +9,63 @@ pub struct ResponseData {
 }
 
 impl ResponseData {
-  pub fn configure_success() -> Self {
-      Self {
+    pub fn configure_success() -> Self {
+        Self {
             code: HTTPStatusCode::OK,
-            content: "Configuration completed successfullly.".to_owned()
-      }
-  }
+            content: "Configuration completed successfullly.".to_owned(),
+        }
+    }
 
-  pub fn not_found() -> Self {
-      Self {
+    pub fn not_found() -> Self {
+        Self {
             code: HTTPStatusCode::NotFound,
             content: "".to_owned(),
-      }
-  }
+        }
+    }
 
-  pub fn limb_not_found() -> Self {
-      Self {
+    pub fn limb_not_found() -> Self {
+        Self {
             code: HTTPStatusCode::NotFound,
-            content: "That limb does not exist.".to_owned()
-      }
-  }
+            content: "That limb does not exist.".to_owned(),
+        }
+    }
 
-  pub fn ok(content: &str) -> Self {
-      Self {
+    pub fn ok(content: &str) -> Self {
+        Self {
             code: HTTPStatusCode::OK,
             content: content.to_owned(),
-      }
-  }
+        }
+    }
 
-  pub fn bad_request(content: &str) -> Self {
-      Self {
+    pub fn bad_request(content: &str) -> Self {
+        Self {
             code: HTTPStatusCode::BadRequest,
             content: content.to_owned(),
-      }
-  }
+        }
+    }
 
-  pub fn method_not_allowed(content: &str) -> Self {
-      Self {
+    pub fn method_not_allowed(content: &str) -> Self {
+        Self {
             code: HTTPStatusCode::MethodNotAllowed,
             content: content.to_owned(),
-      }
-  }
+        }
+    }
 
-  pub fn not_implemented(content: &str) -> Self {
-      Self {
+    pub fn not_implemented(content: &str) -> Self {
+        Self {
             code: HTTPStatusCode::NotImplemented,
             content: content.to_owned(),
-      }
-  }
+        }
+    }
 
-  pub fn forbidden() -> Self {
-      Self {
+    pub fn forbidden() -> Self {
+        Self {
             code: HTTPStatusCode::Forbidden,
             content: "".to_owned(),
-      }
-  }
+        }
+    }
 
-  pub fn site_index() -> Self {
+    pub fn site_index() -> Self {
         // TODO: Decouple site index page generation and ResponseData
         Self::ok(
             r"GET /config - Gets limb configuration (Unimplemented).
@@ -73,22 +73,21 @@ POST /config - Configures limb.
 GET /limb/X - Reads limb X.
 POST /limb/X - Writes limb X.
 GET /info/limbs - Gets list of configured limbs.
-GET /info/types - Gets list of available limb types."
+GET /info/types - Gets list of available limb types.",
         )
-  }
+    }
 }
 
 impl Into<ResponseBox> for ResponseData {
     fn into(self) -> tiny_http::ResponseBox {
         if let HTTPStatusCode::OK = self.code {
-            Response::from_string(self.content)
-                .boxed()
+            Response::from_string(self.content).boxed()
         } else {
             let code = self.code.status_code();
             let name = self.code.name();
             let message = format!("{} {}\n{}", code, name, self.content);
             Response::from_string(message)
-               .with_status_code(code)
+                .with_status_code(code)
                 .boxed()
         }
     }

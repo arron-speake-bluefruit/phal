@@ -10,7 +10,8 @@ extern crate phal;
 
 use phal::{
     limb::{Limb, LimbTypes},
-    pin, serial, server::PHALServer,
+    pin, serial,
+    server::PHALServer,
 };
 
 use std::collections::HashMap;
@@ -24,9 +25,7 @@ fn main() {
     ];
 
     match PHALServer::run_new(types, address) {
-        Ok(_) =>
-            eprintln!("The server stopped unexpectedly."),
-        Err(error) =>
-            eprintln!("Failed to start server: {}", error),
+        Ok(_) => eprintln!("The server stopped unexpectedly."),
+        Err(error) => eprintln!("Failed to start server: {}", error),
     }
 }

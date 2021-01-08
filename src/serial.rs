@@ -48,11 +48,12 @@ impl Limb for Serial {
         let _ = self.0.read_to_end(&mut bytes);
         // ^ Returns error when reaching EOF for some reason. For now, just
         // ignore the error and return partial/empty result below.
-        String::from_utf8(bytes)
-            .map_err(|_| Error::BrokenLimb)
+        String::from_utf8(bytes).map_err(|_| Error::BrokenLimb)
     }
 
-    fn type_name(&self) -> &'static str { "serial" }
+    fn type_name(&self) -> &'static str {
+        "serial"
+    }
 }
 
 fn port_settings_from_json(config: &json::Value) -> Option<serial::PortSettings> {

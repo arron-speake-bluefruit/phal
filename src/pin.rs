@@ -37,7 +37,9 @@ impl Limb for OutputPin {
         Err(Error::InvalidOperation)
     }
 
-    fn type_name(&self) -> &'static str { "output-pin" }
+    fn type_name(&self) -> &'static str {
+        "output-pin"
+    }
 }
 
 pub struct InputPin(cdev::LineHandle);
@@ -60,7 +62,9 @@ impl Limb for InputPin {
         }
     }
 
-    fn type_name(&self) -> &'static str { "input-pin" }
+    fn type_name(&self) -> &'static str {
+        "input-pin"
+    }
 }
 
 fn open_line_handle(
