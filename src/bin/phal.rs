@@ -10,7 +10,7 @@ extern crate phal;
 
 use phal::{
     limb::{Limb, LimbTypes},
-    pin, serial,
+    pin, serial, xmodem,
     server::PHALServer,
 };
 
@@ -21,7 +21,8 @@ fn main() {
     let types = limb_types![
         ("output-pin", pin::OutputPin),
         ("input-pin", pin::InputPin),
-        ("serial", serial::Serial)
+        ("serial", serial::Serial),
+        ("xmodem", xmodem::XModem)
     ];
 
     match PHALServer::run_new(types, address) {

@@ -7,10 +7,12 @@
 
 mod http_status_code;
 mod response_data;
+mod port_settings_from_json;
 
 pub mod limb;
 pub mod pin;
 pub mod serial;
+pub mod xmodem;
 pub mod server;
 
 extern crate gpio_cdev;
