@@ -28,10 +28,10 @@ cargo test
 
 ## Usage
 
-Do `cargo run --release` to begin start the server on port 8000. The
-server is configured by making HTTP POST requests to `/config`. The
+Do `cargo run --release` to start the server on port 8000. The server
+is configured by making HTTP POST requests to `/config`. The
 configuration file must be a JSON object, with members containing
-their own specific configuration. For example, the body of a POST
+their own specific configuration. For example, the body of such a
 request could be:
 
 ```json
@@ -107,7 +107,7 @@ same device.
 
 ```json
 {
-  "serial": {
+  "my_xmodem": {
     "type": "xmodem",
     "device": "/dev/ttyUSB0",
     "baud-rate": 9600,
