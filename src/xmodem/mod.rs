@@ -24,7 +24,7 @@ pub struct XModem {
 impl XModem {
     fn write(&mut self, packet: &Packet) -> Result<(), Error> {
         self.port.write_all(packet.data())
-            .map_err(|_| Error::BrokenLimb)
+            .map_err(|_| Error::WriteFailed)
     }
 
     fn read(&mut self) -> Option<bool> {
@@ -47,18 +47,18 @@ impl XModem {
         while Instant::now() < timeout_point {
             let read = self.read();
             if read.is_some() {
-                return read.ok_or(Error::BrokenLimb);
+                return read.ok_or(Error::ReadFailed);
             }
             sleep(DELAY);
         }
 
-        Err(Error::BrokenLimb)
+        Err(Error::Timeout)
     }
 
     fn wait_for_negative_acknowledge(&mut self) -> Result<(), Error> {
-        match self.wait_for_response() {
-            Ok(false) => Ok(()),
-            _ => Err(Error::BrokenLimb),
+        match self.wait_for_response()? {
+            false => Ok(()),
+            true => Err(Error::ReadFailed),
         }
     }
 }
