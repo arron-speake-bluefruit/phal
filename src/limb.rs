@@ -5,7 +5,9 @@
  * Copyright (C) 2020 Callum David O'Brien
  */
 
-use std::collections::HashMap;
+use std::{
+    collections::HashMap,
+};
 
 use serde_json as json;
 
@@ -14,6 +16,17 @@ pub enum Error {
     BrokenLimb,
     InvalidValue,
     InvalidOperation,
+}
+
+impl Into<&'static str> for Error {
+    fn into(self) -> &'static str {
+        use Error::*;
+        match self {
+            BrokenLimb => "Broken limb",
+            InvalidValue => "Invalid value",
+            InvalidOperation => "Invalid operation"
+        }
+    }
 }
 
 pub trait Limb: Send + Sync {

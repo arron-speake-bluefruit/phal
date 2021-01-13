@@ -5,7 +5,7 @@
  * Copyright (C) 2020 Callum David O'Brien
  */
 
-use crate::limb::{self, Limb, LimbBindings, LimbTypes};
+use crate::limb::{Limb, LimbBindings, LimbTypes};
 use crate::response_data::ResponseData;
 use std::net::ToSocketAddrs;
 use tiny_http::*;
@@ -61,14 +61,14 @@ impl PHALServer {
     fn handle_limb_get_request(limb: &mut Box<dyn Limb>) -> ResponseData {
         match limb.get() {
             Ok(value) => ResponseData::ok(value.as_str()),
-            Err(error) => ResponseData::bad_request(get_limb_error_name(error)),
+            Err(error) => ResponseData::bad_request(error.into()),
         }
     }
 
     fn set_limb_value(limb: &mut Box<dyn Limb>, value: String) -> ResponseData {
         match limb.set(value) {
             Ok(_) => ResponseData::ok("Limb successfully updated."),
-            Err(error) => ResponseData::bad_request(get_limb_error_name(error)),
+            Err(error) => ResponseData::bad_request(error.into()),
         }
     }
 
@@ -177,14 +177,5 @@ impl PHALServer {
             Some(_) => ResponseData::not_found(),
             None => ResponseData::site_index(),
         }
-    }
-}
-
-fn get_limb_error_name(error: limb::Error) -> &'static str {
-    use limb::Error::*;
-    match error {
-        BrokenLimb => "Broken limb",
-        InvalidValue => "Invalid Value",
-        InvalidOperation => "Invalid operation",
     }
 }
