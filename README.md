@@ -26,6 +26,99 @@ cargo build
 cargo test
 ```
 
+## Usage
+
+Do `cargo run --release` to begin start the server on port 8000. The
+server is configured by making HTTP POST requests to `/config`. The
+configuration file must be a JSON object, with members containing
+their own specific configuration. For example, the body of a POST
+request could be:
+
+```json
+{
+  "my_first_limb": { ... },
+  "limb_2": { ... },
+  "another": { ... }
+}
+```
+
+Each limb must be one of a few types, with their own configurations,
+these are:
+
+### Pin
+
+A pin can either have type `input-pin` or `output-pin`, where it can
+either be read or written to, respectively.
+
+To read an input pin called `hello`, make a GET request to
+`/limb/hello`.
+
+To set the state of an output pin called `something`, make a POST
+request to `/limb/something` with either `High` or `Low` in the body.
+
+```json
+{
+  "gpio_10": {
+      "type": "input-pin",
+      "chip": "/dev/gpiochip0",
+      "line": 10,
+      "pin-type": "push-pull"
+  },
+  "gpio_13": {
+      "type": "output-pin",
+      "chip": "/dev/gpiochip0",
+      "line": 13,
+      "pin-type": "push-pull"
+  }
+}
+```
+
+## Serial
+
+To read from a serial interface called `s`, make a GET request to
+`/limb/s`. To write to it, POST to `/limb/s` with content in the
+request's body.
+
+```json
+{
+  "serial": {
+    "type": "serial",
+    "device": "/dev/ttyUSB0",
+    "baud-rate": 9600,
+    "char-size": 8,
+    "parity": "none",
+    "stop-bits": 1,
+    "flow-control": "none"
+  }
+}
+```
+
+## XMODEM
+
+XMODEM limbs internally function identically to serial interfaces,
+but act as XMODEM transmitters instead of raw serial interfaces.
+
+To send a file over an XMODEM interface make a POST request with the
+filename of the file to be transmitted. This must be a file on the
+remote host (the machine running PHAL).
+
+Note: An XMODEM and Serial limb cannot both be configured for the
+same device.
+
+```json
+{
+  "serial": {
+    "type": "xmodem",
+    "device": "/dev/ttyUSB0",
+    "baud-rate": 9600,
+    "char-size": 8,
+    "parity": "none",
+    "stop-bits": 1,
+    "flow-control": "none"
+  }
+}
+```
+
 ## End-to-End Test
 
 The `self-test` directory contains a Python test suite using phal to
