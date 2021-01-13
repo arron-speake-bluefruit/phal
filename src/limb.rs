@@ -16,6 +16,9 @@ pub enum Error {
     BrokenLimb,
     InvalidValue,
     InvalidOperation,
+    WriteFailed,
+    ReadFailed,
+    Timeout,
 }
 
 impl Into<&'static str> for Error {
@@ -24,7 +27,10 @@ impl Into<&'static str> for Error {
         match self {
             BrokenLimb => "Broken limb",
             InvalidValue => "Invalid value",
-            InvalidOperation => "Invalid operation"
+            InvalidOperation => "Invalid operation",
+            WriteFailed => "Write failed",
+            ReadFailed => "Read failed",
+            Timeout => "Timeout",
         }
     }
 }
