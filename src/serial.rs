@@ -46,7 +46,9 @@ impl Limb for Serial {
         let _ = self.0.read_to_end(&mut bytes);
         // ^ Returns error when reaching EOF for some reason. For now, just
         // ignore the error and return partial/empty result below.
-        String::from_utf8(bytes).map_err(|_| Error::BrokenLimb)
+
+        let string = String::from_utf8_lossy(&bytes[..]);
+        Ok(string.into_owned())
     }
 
     fn type_name(&self) -> &'static str {
