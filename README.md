@@ -119,6 +119,12 @@ same device.
 }
 ```
 
+## Info
+
+The configuration of the server can be queried by making GET requests
+to `/info/types` to return available limb types, and `/info/limbs` to
+return currently registered limbs, along with their type.
+
 ## End-to-End Test
 
 The `self-test` directory contains a Python test suite using phal to
