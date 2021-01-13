@@ -1,3 +1,4 @@
+// Copyright (C) 2020 Arron Speake
 pub const PAYLOAD_SIZE: usize = 128;
 const HEADER_SIZE: usize = 3;
 const FOOTER_SIZE: usize = 1;

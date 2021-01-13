@@ -1,3 +1,4 @@
+// Copyright (C) 2020 Arron Speake
 mod packet;
 mod xmodem_file_adapter;
 

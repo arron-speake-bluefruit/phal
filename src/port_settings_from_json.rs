@@ -1,3 +1,10 @@
+// Copyright (C) 2020 Arron Speake
+// This is a fork of a project licensed under the following:
+/*
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ * Copyright (C) 2020 Callum David O'Brien
+ */
+
 use serde_json as json;
 use std::convert::TryInto;
 

@@ -1,3 +1,4 @@
+// Copyright (C) 2020 Arron Speake
 use super::packet::{Packet, PAYLOAD_SIZE};
 
 use std::{
