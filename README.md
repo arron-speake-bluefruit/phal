@@ -73,7 +73,7 @@ request to `/limb/something` with either `High` or `Low` in the body.
 }
 ```
 
-## Serial
+### Serial
 
 To read from a serial interface called `s`, make a GET request to
 `/limb/s`. To write to it, POST to `/limb/s` with content in the
@@ -93,7 +93,7 @@ request's body.
 }
 ```
 
-## XMODEM
+### XMODEM
 
 XMODEM limbs internally function identically to serial interfaces,
 but act as XMODEM transmitters instead of raw serial interfaces.
