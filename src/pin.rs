@@ -1,3 +1,5 @@
+// Copyright (C) 2020 Arron Speake
+// This is a fork of a project licensed under the following:
 /*
  * SPDX-License-Identifier: GPL-3.0-or-later
  * Copyright (C) 2020 Callum David O'Brien
@@ -34,6 +36,10 @@ impl Limb for OutputPin {
     fn get(&mut self) -> Result<String, Error> {
         Err(Error::InvalidOperation)
     }
+
+    fn type_name(&self) -> &'static str {
+        "output-pin"
+    }
 }
 
 pub struct InputPin(cdev::LineHandle);
@@ -54,6 +60,10 @@ impl Limb for InputPin {
             0 => Ok(String::from("Low")),
             _ => Err(Error::BrokenLimb),
         }
+    }
+
+    fn type_name(&self) -> &'static str {
+        "input-pin"
     }
 }
 

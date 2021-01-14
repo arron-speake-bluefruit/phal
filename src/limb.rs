@@ -1,9 +1,13 @@
+// Copyright (C) 2020 Arron Speake
+// This is a fork of a project licensed under the following:
 /*
  * SPDX-License-Identifier: GPL-3.0-or-later
  * Copyright (C) 2020 Callum David O'Brien
  */
 
-use std::collections::HashMap;
+use std::{
+    collections::HashMap,
+};
 
 use serde_json as json;
 
@@ -12,6 +16,23 @@ pub enum Error {
     BrokenLimb,
     InvalidValue,
     InvalidOperation,
+    WriteFailed,
+    ReadFailed,
+    Timeout,
+}
+
+impl Into<&'static str> for Error {
+    fn into(self) -> &'static str {
+        use Error::*;
+        match self {
+            BrokenLimb => "Broken limb",
+            InvalidValue => "Invalid value",
+            InvalidOperation => "Invalid operation",
+            WriteFailed => "Write failed",
+            ReadFailed => "Read failed",
+            Timeout => "Timeout",
+        }
+    }
 }
 
 pub trait Limb: Send + Sync {
@@ -20,15 +41,23 @@ pub trait Limb: Send + Sync {
         Self: Sized;
     fn set(&mut self, value: String) -> Result<(), Error>;
     fn get(&mut self) -> Result<String, Error>;
+    fn type_name(&self) -> &'static str;
 }
 
-pub struct LimbTypes(HashMap<String, Box<dyn Fn(&json::Value) -> Option<Box<dyn Limb>>>>);
+type LimbTypesHashMapKey = Box<dyn Fn(&serde_json::Value) -> Option<Box<dyn Limb>>>;
+type LimbTypesHashMap = HashMap<String, LimbTypesHashMapKey>;
+
+pub struct LimbTypes(LimbTypesHashMap);
 
 pub struct LimbBindings(HashMap<String, Box<dyn Limb>>);
 
 impl LimbBindings {
     pub fn new() -> Self {
         LimbBindings(HashMap::new())
+    }
+
+    pub fn iter(&self) -> std::collections::hash_map::Iter<String, Box<dyn Limb>> {
+        self.0.iter()
     }
 
     pub fn from_json(json: &str, types: &LimbTypes) -> Option<Self> {
@@ -61,10 +90,12 @@ impl LimbBindings {
 }
 
 impl LimbTypes {
-    pub fn from(
-        h: HashMap<String, Box<dyn Fn(&serde_json::Value) -> Option<Box<dyn Limb>>>>,
-    ) -> Self {
+    pub fn from(h: LimbTypesHashMap) -> Self {
         LimbTypes(h)
+    }
+
+    pub fn names(&self) -> std::collections::hash_map::Keys<String, LimbTypesHashMapKey> {
+        self.0.keys()
     }
 }
 

@@ -1,11 +1,18 @@
+// Copyright (C) 2020 Arron Speake
+// This is a fork of a project licensed under the following:
 /*
  * SPDX-License-Identifier: GPL-3.0-or-later
  * Copyright (C) 2020 Callum David O'Brien
  */
 
+mod http_status_code;
+mod response_data;
+mod port_settings_from_json;
+
 pub mod limb;
 pub mod pin;
 pub mod serial;
+pub mod xmodem;
 pub mod server;
 
 extern crate gpio_cdev;

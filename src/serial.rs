@@ -1,17 +1,17 @@
+// Copyright (C) 2020 Arron Speake
+// This is a fork of a project licensed under the following:
 /*
  * SPDX-License-Identifier: GPL-3.0-or-later
  * Copyright (C) 2020 Callum David O'Brien
  */
 
-use crate::limb::{Error, Limb};
-
 use serde_json as json;
-use serial::{self, SerialPort};
-
-use std::{
-    convert::TryInto,
-    io::{Read, Write},
+use crate::{
+    limb::{Error, Limb},
+    port_settings_from_json::port_settings_from_json,
 };
+use serial::{self, SerialPort};
+use std::io::{Read, Write};
 
 pub struct Serial(serial::SystemPort);
 
@@ -42,77 +42,16 @@ impl Limb for Serial {
     }
 
     fn get(&mut self) -> Result<String, Error> {
-        let mut v: Vec<u8> = Vec::new();
-        loop {
-            let mut buffer = [0; 1];
-            if let Err(_) = self.0.read(&mut buffer) {
-                break;
-            }
-            v.push(buffer[0]);
-        }
-        String::from_utf8(v).map_err(|_| Error::BrokenLimb)
-    }
-}
+        let mut bytes = Vec::new();
+        let _ = self.0.read_to_end(&mut bytes);
+        // ^ Returns error when reaching EOF for some reason. For now, just
+        // ignore the error and return partial/empty result below.
 
-fn port_settings_from_json(config: &json::Value) -> Option<serial::PortSettings> {
-    let baud_rate = match &config["baud-rate"] {
-        json::Value::Number(n) => Some(match n.as_u64()? {
-            110 => serial::BaudRate::Baud110,
-            300 => serial::BaudRate::Baud300,
-            600 => serial::BaudRate::Baud600,
-            1200 => serial::BaudRate::Baud1200,
-            2400 => serial::BaudRate::Baud2400,
-            4800 => serial::BaudRate::Baud4800,
-            9600 => serial::BaudRate::Baud9600,
-            19200 => serial::BaudRate::Baud19200,
-            38400 => serial::BaudRate::Baud38400,
-            57600 => serial::BaudRate::Baud57600,
-            115200 => serial::BaudRate::Baud115200,
-            m => serial::BaudRate::BaudOther(m.try_into().ok()?),
-        }),
-        _ => None,
-    }?;
-    let char_size = match &config["char-size"] {
-        json::Value::Number(n) => match n.as_u64()? {
-            5 => Some(serial::CharSize::Bits5),
-            6 => Some(serial::CharSize::Bits6),
-            7 => Some(serial::CharSize::Bits7),
-            8 => Some(serial::CharSize::Bits8),
-            _ => None,
-        },
-        _ => None,
-    }?;
-    let parity = match &config["parity"] {
-        json::Value::String(s) => match s.as_ref() {
-            "none" => Some(serial::Parity::ParityNone),
-            "odd" => Some(serial::Parity::ParityOdd),
-            "even" => Some(serial::Parity::ParityEven),
-            _ => None,
-        },
-        _ => None,
-    }?;
-    let stop_bits = match &config["stop-bits"] {
-        json::Value::Number(n) => match n.as_u64()? {
-            1 => Some(serial::StopBits::Stop1),
-            2 => Some(serial::StopBits::Stop2),
-            _ => None,
-        },
-        _ => None,
-    }?;
-    let flow_control = match &config["flow-control"] {
-        json::Value::String(s) => match s.as_ref() {
-            "none" => Some(serial::FlowControl::FlowNone),
-            "software" => Some(serial::FlowControl::FlowSoftware),
-            "hardware" => Some(serial::FlowControl::FlowHardware),
-            _ => None,
-        },
-        _ => None,
-    }?;
-    Some(serial::PortSettings {
-        baud_rate: baud_rate,
-        char_size: char_size,
-        parity: parity,
-        stop_bits: stop_bits,
-        flow_control: flow_control,
-    })
+        let string = String::from_utf8_lossy(&bytes[..]);
+        Ok(string.into_owned())
+    }
+
+    fn type_name(&self) -> &'static str {
+        "serial"
+    }
 }
