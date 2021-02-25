@@ -22,8 +22,7 @@ impl XModemFileAdapter {
     }
 
     pub fn get_next_packet(&mut self) -> Option<Packet> {
-        // TODO: Handle panic at (block == 255).
-        self.block += 1;
+        self.block = self.block.wrapping_add(1);
 
         let mut buffer = [0u8; PAYLOAD_SIZE];
         let result = self.file.read(&mut buffer);
